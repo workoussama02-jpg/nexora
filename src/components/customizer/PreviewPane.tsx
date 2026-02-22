@@ -109,8 +109,21 @@ function buildPreviewHtml(config: PreviewConfig): string {
     : '';
 
   // Timestamps
+  function formatPreviewTimestamp(format: string): string {
+    const now = new Date();
+    if (format === '24-hour') {
+      return now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+    } else if (format === 'full') {
+      return now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    } else if (format === 'relative') {
+      return 'just now';
+    } else {
+      return now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    }
+  }
+
   const timestampHtml = win.showTimestamps
-    ? `<div class="msg-timestamp" style="color:${escapeHtml(win.timestampColor)};font-size:${win.timestampFontSize}px;">12:34 PM</div>`
+    ? `<div class="msg-timestamp" style="color:${escapeHtml(win.timestampColor)};font-size:${win.timestampFontSize}px;">${escapeHtml(formatPreviewTimestamp(win.timestampFormat))}</div>`
     : '';
 
   // Typing indicator
