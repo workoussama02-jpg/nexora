@@ -222,6 +222,16 @@ function buildPreviewHtml(config: PreviewConfig): string {
     welcomeAnimCss += `\n${logoAnimMap[wp.welcomeLogoAnimation] || ''}\n.welcome-logo, .welcome-logo-placeholder { animation: ${logoAnimRef}; }`;
   }
 
+  // Custom cursor CSS
+  let cursorCss = '';
+  if (adv.enableCustomCursor) {
+    if (adv.cursorType === 'custom' && adv.customCursorUrl) {
+      cursorCss = `.widget-root,.widget-root *{cursor:url('${escapeHtml(adv.customCursorUrl)}'),auto}`;
+    } else {
+      cursorCss = `.widget-root,.widget-root *{cursor:${adv.presetCursor || 'pointer'}}`;
+    }
+  }
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -262,6 +272,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
   ${bubbleAnimCss}
   ${shadowAnimCss}
   ${welcomeAnimCss}
+  ${cursorCss}
 
   .tooltip {
     position: absolute;

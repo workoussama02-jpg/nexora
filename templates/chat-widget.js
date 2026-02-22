@@ -261,9 +261,9 @@
     var cursorCSS = '';
     if (config.advanced.enableCustomCursor) {
         if (config.advanced.cursorType === 'custom' && config.advanced.customCursorUrl) {
-            cursorCSS = '.ncw-container,.ncw-container *{cursor:url(' + config.advanced.customCursorUrl + '),auto}';
+            cursorCSS = '.n8n-chat-widget,.n8n-chat-widget *{cursor:url(\'' + config.advanced.customCursorUrl + '\'),auto}';
         } else {
-            cursorCSS = '.ncw-container,.ncw-container *{cursor:' + (config.advanced.presetCursor || 'pointer') + '}';
+            cursorCSS = '.n8n-chat-widget,.n8n-chat-widget *{cursor:' + (config.advanced.presetCursor || 'pointer') + '}';
         }
     }
 
