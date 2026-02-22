@@ -138,8 +138,14 @@ function buildPreviewHtml(config: PreviewConfig): string {
 
   // Shadow/glow
   const shadowStyle = win.shadowEnabled
-    ? `box-shadow: 0 0 ${win.shadowBlur}px ${win.shadowSpread}px ${escapeHtml(win.shadowColor1)};`
+    ? `box-shadow: 0 0 ${win.shadowBlur}px ${win.shadowSpread}px ${escapeHtml(win.shadowColor1)}80, 0 0 ${win.shadowBlur * 2}px ${win.shadowSpread * 2}px ${escapeHtml(win.shadowColor2)}80;`
     : '';
+
+  // Shadow animation CSS
+  let shadowAnimCss = '';
+  if (win.shadowEnabled && win.shadowAnimate) {
+    shadowAnimCss = `@keyframes ncw-shadow-pulse{0%,100%{box-shadow:0 0 ${win.shadowBlur}px ${win.shadowSpread}px ${escapeHtml(win.shadowColor1)}80}50%{box-shadow:0 0 ${win.shadowBlur * 1.5}px ${win.shadowSpread * 1.5}px ${escapeHtml(win.shadowColor2)}80}}\n.chat-container{animation:ncw-shadow-pulse ${win.shadowAnimationSpeed}s ease-in-out infinite}`;
+  }
 
   // Header action buttons
   const backBtnHtml = win.showBackToWelcome ? `<button class="header-action" title="Back" onclick="backToWelcome()">&#8592;</button>` : '';
@@ -222,6 +228,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
   }
   .toggle-btn:hover { transform: scale(1.05); }
   ${bubbleAnimCss}
+  ${shadowAnimCss}
 
   .tooltip {
     position: absolute;

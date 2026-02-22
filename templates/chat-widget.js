@@ -240,9 +240,9 @@
         var sc1 = config.window.shadowColor1, sc2 = config.window.shadowColor2;
         var sBlur = config.window.shadowBlur, sSpread = config.window.shadowSpread;
         if (config.window.shadowAnimate) {
-            shadowCSS = '@keyframes ncw-shadow-pulse{0%,100%{box-shadow:0 0 ' + sBlur + 'px ' + sSpread + 'px ' + sc1 + '80}50%{box-shadow:0 0 ' + sBlur + 'px ' + sSpread + 'px ' + sc2 + '80}}\n.ncw-container{animation:ncw-shadow-pulse ' + config.window.shadowAnimationSpeed + 's ease-in-out infinite}';
+            shadowCSS = '@keyframes ncw-shadow-pulse{0%,100%{box-shadow:0 0 ' + sBlur + 'px ' + sSpread + 'px ' + sc1 + '80}50%{box-shadow:0 0 ' + (sBlur * 1.5) + 'px ' + (sSpread * 1.5) + 'px ' + sc2 + '80}}\n.ncw-container{animation:ncw-shadow-pulse ' + config.window.shadowAnimationSpeed + 's ease-in-out infinite}';
         } else {
-            shadowCSS = '.ncw-container{box-shadow:0 0 ' + sBlur + 'px ' + sSpread + 'px ' + sc1 + '80}';
+            shadowCSS = '.ncw-container{box-shadow:0 0 ' + sBlur + 'px ' + sSpread + 'px ' + sc1 + '80, 0 0 ' + (sBlur * 2) + 'px ' + (sSpread * 2) + 'px ' + sc2 + '80}';
         }
     }
 
