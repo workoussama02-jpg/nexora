@@ -190,6 +190,20 @@ function buildPreviewHtml(config: PreviewConfig): string {
     bubbleAnimCss = `${animMap[bubble.animation] || ''}\n.toggle-btn { animation: bubbleAnim ${dur} ease-in-out ${bubble.animateOnlyOnLoad ? '1' : 'infinite'}; }`;
   }
 
+  // Welcome page animation CSS
+  let welcomeAnimCss = '';
+  if (wp.welcomeButtonAnimation !== 'none') {
+    const animMap: Record<string, string> = {
+      bounce: `@keyframes wp-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`,
+      float: `@keyframes wp-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }`,
+      pulse: `@keyframes wp-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }`,
+      spin: `@keyframes wp-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`,
+      glow: `@keyframes wp-glow { 0%,100% { box-shadow: 0 0 5px rgba(0,0,0,0.2); } 50% { box-shadow: 0 0 20px ${escapeHtml(config.primaryColor)}80; } }`,
+    };
+    const animRef = wp.welcomeButtonAnimation === 'glow' ? `wp-glow 2s ease-in-out infinite` : `wp-${wp.welcomeButtonAnimation} ${wp.welcomeButtonAnimationSpeed}s ease-in-out infinite`;
+    welcomeAnimCss = `${animMap[wp.welcomeButtonAnimation] || ''}\n.start-btn, .starter-prompt { animation: ${animRef}; }`;
+  }
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -229,6 +243,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
   .toggle-btn:hover { transform: scale(1.05); }
   ${bubbleAnimCss}
   ${shadowAnimCss}
+  ${welcomeAnimCss}
 
   .tooltip {
     position: absolute;

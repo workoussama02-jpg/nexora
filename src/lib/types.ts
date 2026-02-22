@@ -140,6 +140,7 @@ export interface WelcomePageConfig {
   welcomeLogoSize: number;
   welcomeLogoAnimation: WelcomeAnimation;
   welcomeButtonAnimation: WelcomeAnimation;
+  welcomeButtonAnimationSpeed: number;
   welcomeBackgroundColor: string;
 }
 

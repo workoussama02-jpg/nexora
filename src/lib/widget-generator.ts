@@ -230,6 +230,7 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
             welcomeLogoSize: ${cfg.welcomePage.welcomeLogoSize},
             welcomeLogoAnimation: '${escapeForJs(cfg.welcomePage.welcomeLogoAnimation)}',
             welcomeButtonAnimation: '${escapeForJs(cfg.welcomePage.welcomeButtonAnimation)}',
+            welcomeButtonAnimationSpeed: ${cfg.welcomePage.welcomeButtonAnimationSpeed},
             welcomeBackgroundColor: '${escapeForJs(cfg.welcomePage.welcomeBackgroundColor)}'
         }
     };

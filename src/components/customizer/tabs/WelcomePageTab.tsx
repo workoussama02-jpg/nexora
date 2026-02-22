@@ -54,6 +54,17 @@ export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps
           onChange={(v) => onChange('welcomeButtonAnimation', v as WelcomeAnimation)}
           options={ANIMATION_OPTIONS}
         />
+        {config.welcomeButtonAnimation !== 'none' && (
+          <Slider
+            label="Animation Speed"
+            value={config.welcomeButtonAnimationSpeed}
+            onChange={(v) => onChange('welcomeButtonAnimationSpeed', v)}
+            min={0}
+            max={10}
+            step={0.1}
+            unit="s"
+          />
+        )}
       </CollapsibleSection>
 
       {/* Logo Settings */}

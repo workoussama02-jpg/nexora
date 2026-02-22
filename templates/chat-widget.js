@@ -392,7 +392,8 @@
     }
     if (config.welcomePage.welcomeButtonAnimation !== 'none') {
         var ba = config.welcomePage.welcomeButtonAnimation;
-        var btnAnimRef = ba === 'glow' ? 'ncw-wp-glow 2s ease-in-out infinite' : 'ncw-wp-' + ba + ' 1.5s ease-in-out infinite';
+        var speed = config.welcomePage.welcomeButtonAnimationSpeed || 1.5;
+        var btnAnimRef = ba === 'glow' ? 'ncw-wp-glow 2s ease-in-out infinite' : 'ncw-wp-' + ba + ' ' + speed + 's ease-in-out infinite';
         css += '.ncw-start-btn,.ncw-prompt-chip{animation:' + btnAnimRef + '}\n';
     }
 

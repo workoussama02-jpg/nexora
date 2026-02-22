@@ -166,6 +166,7 @@ export const DEFAULT_ADVANCED_CONFIG: WidgetAdvancedConfig = {
     welcomeLogoSize: 60,
     welcomeLogoAnimation: 'none',
     welcomeButtonAnimation: 'none',
+    welcomeButtonAnimationSpeed: 1.5,
     welcomeBackgroundColor: '',
   },
 };
