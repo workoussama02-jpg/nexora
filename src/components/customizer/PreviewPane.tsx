@@ -169,9 +169,15 @@ function buildPreviewHtml(config: PreviewConfig): string {
   if (wp.showWelcomeLogo) {
     const wLogoSrc = wp.welcomeLogoSource === 'custom' && wp.welcomeCustomLogoUrl ? wp.welcomeCustomLogoUrl : logoSrc;
     if (wLogoSrc) {
-      welcomeLogoHtml = `<img class="welcome-logo" src="${escapeHtml(wLogoSrc)}" alt="" style="width:${wp.welcomeLogoSize}px;height:${wp.welcomeLogoSize}px;object-fit:contain;margin-bottom:12px;" onerror="this.style.display='none'" />`;
+      let posStyle = '';
+      if (wp.welcomeLogoPosition === 'top-left') posStyle = 'align-self:flex-start;';
+      else if (wp.welcomeLogoPosition === 'top-right') posStyle = 'align-self:flex-end;';
+      welcomeLogoHtml = `<img class="welcome-logo" src="${escapeHtml(wLogoSrc)}" alt="" style="width:${wp.welcomeLogoSize}px;height:${wp.welcomeLogoSize}px;object-fit:contain;${posStyle}" onerror="this.style.display='none'" />`;
     } else {
-      welcomeLogoHtml = `<div class="welcome-logo-placeholder" style="width:${wp.welcomeLogoSize}px;height:${wp.welcomeLogoSize}px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><svg width="${Math.round(wp.welcomeLogoSize * 0.5)}" height="${Math.round(wp.welcomeLogoSize * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`;
+      let posStyle = '';
+      if (wp.welcomeLogoPosition === 'top-left') posStyle = 'align-self:flex-start;';
+      else if (wp.welcomeLogoPosition === 'top-right') posStyle = 'align-self:flex-end;';
+      welcomeLogoHtml = `<div class="welcome-logo-placeholder" style="width:${wp.welcomeLogoSize}px;height:${wp.welcomeLogoSize}px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;${posStyle}"><svg width="${Math.round(wp.welcomeLogoSize * 0.5)}" height="${Math.round(wp.welcomeLogoSize * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`;
     }
   }
 
@@ -202,6 +208,18 @@ function buildPreviewHtml(config: PreviewConfig): string {
     };
     const animRef = wp.welcomeButtonAnimation === 'glow' ? `wp-glow 2s ease-in-out infinite` : `wp-${wp.welcomeButtonAnimation} ${wp.welcomeButtonAnimationSpeed}s ease-in-out infinite`;
     welcomeAnimCss = `${animMap[wp.welcomeButtonAnimation] || ''}\n.start-btn, .starter-prompt { animation: ${animRef}; }`;
+  }
+
+  if (wp.welcomeLogoAnimation !== 'none') {
+    const logoAnimMap: Record<string, string> = {
+      bounce: `@keyframes logo-bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`,
+      float: `@keyframes logo-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }`,
+      pulse: `@keyframes logo-pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }`,
+      spin: `@keyframes logo-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`,
+      glow: `@keyframes logo-glow { 0%,100% { box-shadow: 0 0 5px rgba(0,0,0,0.2); } 50% { box-shadow: 0 0 20px ${escapeHtml(config.primaryColor)}80; } }`,
+    };
+    const logoAnimRef = wp.welcomeLogoAnimation === 'glow' ? `logo-glow 2s ease-in-out infinite` : `logo-${wp.welcomeLogoAnimation} 2s ease-in-out infinite`;
+    welcomeAnimCss += `\n${logoAnimMap[wp.welcomeLogoAnimation] || ''}\n.welcome-logo, .welcome-logo-placeholder { animation: ${logoAnimRef}; }`;
   }
 
   return `<!DOCTYPE html>
@@ -419,8 +437,9 @@ function buildPreviewHtml(config: PreviewConfig): string {
     ${socialIconsHtml}
 
     <div class="welcome-screen">
-      ${welcomeLogoHtml}
+      ${wp.welcomeLogoPosition === 'below-text' ? '' : welcomeLogoHtml}
       <div class="welcome-text">${config.welcomeText ? escapeHtml(win.welcomeMessage || config.welcomeText) : '<span class="placeholder">Welcome! How can we help?</span>'}</div>
+      ${wp.welcomeLogoPosition === 'below-text' ? welcomeLogoHtml : ''}
       <button class="start-btn" onclick="startChat()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         ${escapeHtml(wp.welcomeButtonText || 'Send us a message')}
