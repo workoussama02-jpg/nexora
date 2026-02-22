@@ -29,6 +29,7 @@ const LOGO_SOURCE_OPTIONS = [
 const LOGO_POSITION_OPTIONS = [
   { label: 'Left', value: 'left' },
   { label: 'Right', value: 'right' },
+  { label: 'Both', value: 'both' },
 ];
 
 export default function FooterTab({ config, onChange }: FooterTabProps) {

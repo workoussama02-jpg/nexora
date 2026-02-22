@@ -570,6 +570,7 @@
         if (config.footer.showLogo && footerLogoImg) {
             if (config.footer.logoPosition === 'left') footerHtml += footerLogoImg + footerTextContent;
             else if (config.footer.logoPosition === 'right') footerHtml += footerTextContent + footerLogoImg;
+            else if (config.footer.logoPosition === 'both') footerHtml += footerLogoImg + footerTextContent + footerLogoImg;
             else footerHtml += footerLogoImg + footerTextContent;
         } else {
             footerHtml += footerTextContent;
