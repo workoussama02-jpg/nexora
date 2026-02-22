@@ -47,16 +47,16 @@ export default function ForgotPasswordPage() {
             Nexora
           </Link>
           <h1 className="mt-6 text-2xl font-bold">Reset your password</h1>
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
             Enter your email and we&apos;ll send you a reset link.
           </p>
         </div>
 
         {sent ? (
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-8 text-center space-y-4">
+          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-8 text-center space-y-4">
             <p className="text-green-400 font-medium">Check your email</p>
-            <p className="text-sm text-gray-400">
-              If an account exists for <span className="text-white">{email}</span>, you&apos;ll receive a password reset link shortly.
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              If an account exists for <span className="font-medium">{email}</span>, you&apos;ll receive a password reset link shortly.
             </p>
             <Link href="/login" className="inline-flex items-center gap-1 text-sm text-brand-primary hover:underline">
               <ArrowLeft className="h-4 w-4" />
@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <>
-            <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-8">
+            <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-8">
               <Input
                 label="Email"
                 type="email"
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
               </Button>
             </form>
 
-            <p className="text-center text-sm text-gray-400">
+            <p className="text-center text-sm text-gray-500 dark:text-gray-400">
               <Link href="/login" className="inline-flex items-center gap-1 font-medium text-brand-primary hover:underline">
                 <ArrowLeft className="h-4 w-4" />
                 Back to login

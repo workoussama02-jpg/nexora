@@ -15,11 +15,11 @@ const variantStyles: Record<Variant, string> = {
   primary:
     'bg-gradient-to-r from-brand-primary to-brand-secondary text-white hover:opacity-90',
   secondary:
-    'bg-white/10 border border-white/20 text-white hover:bg-white/20',
+    'bg-gray-100 dark:bg-white/10 border border-gray-300 dark:border-white/20 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20',
   destructive:
     'bg-red-600 text-white hover:bg-red-700',
   ghost:
-    'text-gray-300 hover:bg-white/10',
+    'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10',
 };
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

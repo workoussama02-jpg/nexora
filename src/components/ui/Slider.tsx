@@ -17,8 +17,8 @@ export default function Slider({ label, value, onChange, min, max, step = 1, uni
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between">
-        <label htmlFor={id} className="text-sm font-medium text-gray-200">{label}</label>
-        <span className="text-xs text-gray-400 tabular-nums">{value}{unit}</span>
+        <label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200">{label}</label>
+        <span className="text-xs text-gray-500 dark:text-gray-400 tabular-nums">{value}{unit}</span>
       </div>
       <input
         id={id}
@@ -28,7 +28,7 @@ export default function Slider({ label, value, onChange, min, max, step = 1, uni
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-1.5 rounded-full appearance-none bg-white/10 accent-brand-primary cursor-pointer"
+        className="w-full h-1.5 rounded-full appearance-none bg-gray-200 dark:bg-white/10 accent-brand-primary cursor-pointer"
       />
     </div>
   );

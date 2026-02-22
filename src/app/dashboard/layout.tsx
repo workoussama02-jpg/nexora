@@ -1,8 +1,9 @@
-// Dashboard layout — auth guard + navbar wrapper
+// Dashboard layout — auth guard + navbar + sidebar wrapper
 'use client';
 
 import { useUser } from '@insforge/nextjs';
 import DashboardNavbar from '@/components/dashboard/DashboardNavbar';
+import SideNav from '@/components/dashboard/SideNav';
 import Spinner from '@/components/ui/Spinner';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,8 +19,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen">
-      <DashboardNavbar userEmail={user?.email ?? ''} />
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</main>
+      <DashboardNavbar
+        userEmail={user?.email ?? ''}
+        userName={user?.profile?.name ?? ''}
+      />
+      <div className="mx-auto flex max-w-7xl gap-6 px-4 py-8 sm:px-6">
+        <SideNav />
+        <main className="min-w-0 flex-1">{children}</main>
+      </div>
     </div>
   );
 }

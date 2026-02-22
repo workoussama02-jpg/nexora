@@ -14,10 +14,10 @@ export default function Toggle({ label, checked, onChange, helperText }: ToggleP
   return (
     <div className="flex items-center justify-between gap-3">
       <div>
-        <label htmlFor={id} className="text-sm font-medium text-gray-200 cursor-pointer">
+        <label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer">
           {label}
         </label>
-        {helperText && <p className="text-xs text-gray-500 mt-0.5">{helperText}</p>}
+        {helperText && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{helperText}</p>}
       </div>
       <button
         id={id}
@@ -26,7 +26,7 @@ export default function Toggle({ label, checked, onChange, helperText }: ToggleP
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 cursor-pointer ${
-          checked ? 'bg-brand-primary' : 'bg-white/20'
+          checked ? 'bg-brand-primary' : 'bg-gray-300 dark:bg-white/20'
         }`}
       >
         <span

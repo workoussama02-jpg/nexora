@@ -1,8 +1,10 @@
 // Bubble tab — chat toggle button customization
 'use client';
 
-import type { BubbleConfig, BubbleBorderRadius } from '@/lib/types';
+import type { BubbleConfig, BubbleBorderRadius, BubbleAnimation, AnimationSpeed } from '@/lib/types';
 import ColorPicker from '../ColorPicker';
+import PositionToggle from '../PositionToggle';
+import CollapsibleSection from '../CollapsibleSection';
 import RadioGroup from '@/components/ui/RadioGroup';
 import NumberInput from '@/components/ui/NumberInput';
 import Slider from '@/components/ui/Slider';
@@ -13,6 +15,7 @@ interface BubbleTabProps {
   config: BubbleConfig;
   position: 'left' | 'right';
   onChange: <K extends keyof BubbleConfig>(key: K, value: BubbleConfig[K]) => void;
+  onPositionChange: (position: 'left' | 'right') => void;
 }
 
 const RADIUS_OPTIONS = [
@@ -21,9 +24,26 @@ const RADIUS_OPTIONS = [
   { label: 'None', value: 'none' },
 ];
 
-export default function BubbleTab({ config, position, onChange }: BubbleTabProps) {
+const ANIMATION_OPTIONS = [
+  { label: 'None', value: 'none' },
+  { label: 'Bounce', value: 'bounce' },
+  { label: 'Float', value: 'float' },
+  { label: 'Pulse', value: 'pulse' },
+  { label: 'Shake', value: 'shake' },
+  { label: 'Wiggle', value: 'wiggle' },
+];
+
+const SPEED_OPTIONS = [
+  { label: 'Slow', value: 'slow' },
+  { label: 'Normal', value: 'normal' },
+  { label: 'Fast', value: 'fast' },
+];
+
+export default function BubbleTab({ config, position, onChange, onPositionChange }: BubbleTabProps) {
   return (
     <div className="space-y-5">
+      <PositionToggle value={position} onChange={onPositionChange} />
+
       <RadioGroup
         label="Border Radius Style"
         value={config.borderRadiusStyle}
@@ -126,6 +146,32 @@ export default function BubbleTab({ config, position, onChange }: BubbleTabProps
           unit="seconds"
         />
       )}
+
+      {/* Bubble Animation */}
+      <CollapsibleSection title="Bubble Animation">
+        <RadioGroup
+          label="Animation Style"
+          value={config.animation}
+          onChange={(v) => onChange('animation', v as BubbleAnimation)}
+          options={ANIMATION_OPTIONS}
+        />
+        {config.animation !== 'none' && (
+          <>
+            <RadioGroup
+              label="Animation Speed"
+              value={config.animationSpeed}
+              onChange={(v) => onChange('animationSpeed', v as AnimationSpeed)}
+              options={SPEED_OPTIONS}
+            />
+            <Toggle
+              label="Animate Only on Load"
+              checked={config.animateOnlyOnLoad}
+              onChange={(v) => onChange('animateOnlyOnLoad', v)}
+              helperText="When on, animation plays once. When off, it loops."
+            />
+          </>
+        )}
+      </CollapsibleSection>
     </div>
   );
 }

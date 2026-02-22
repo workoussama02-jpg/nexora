@@ -5,24 +5,22 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@insforge/nextjs';
-import { Lock } from 'lucide-react';
+import { insforge } from '@/lib/insforge';
 import { createWidget, updateWidget } from '@/lib/widgets';
 import { DEFAULT_WIDGET_CONFIG, DEFAULT_ADVANCED_CONFIG } from '@/lib/constants';
 import { validateWidgetForm, validateAdvancedConfig } from '@/lib/validators';
-import type { WidgetRow, WidgetAdvancedConfig, BubbleConfig, TooltipConfig, WindowConfig, BotMessageConfig, UserMessageConfig, InputFieldConfig, FooterConfig, AdvancedConfig } from '@/lib/types';
+import type { WidgetRow, WidgetAdvancedConfig, BubbleConfig, TooltipConfig, WindowConfig, BotMessageConfig, UserMessageConfig, InputFieldConfig, FooterConfig, AdvancedConfig, WelcomePageConfig } from '@/lib/types';
 import { useToast } from '@/components/ui/Toast';
 import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import FormSection from './FormSection';
-import ColorPicker from './ColorPicker';
-import PositionToggle from './PositionToggle';
 import PreviewPane from './PreviewPane';
 import DeployInstructions from './DeployInstructions';
+import WidgetSettingsTab from './tabs/WidgetSettingsTab';
 import BubbleTab from './tabs/BubbleTab';
 import TooltipTab from './tabs/TooltipTab';
 import WindowTab from './tabs/WindowTab';
 import FooterTab from './tabs/FooterTab';
 import AdvancedTab from './tabs/AdvancedTab';
+import WelcomePageTab from './tabs/WelcomePageTab';
 
 interface CustomizerFormProps {
   widget?: WidgetRow | null;
@@ -45,7 +43,7 @@ interface FormState {
   position: 'left' | 'right';
 }
 
-const TABS = ['Bubble', 'Tooltip', 'Window', 'Footer', 'Advanced'] as const;
+const TABS = ['Widget Settings', 'Bubble', 'Tooltip', 'Window', 'Welcome Page', 'Footer', 'Advanced'] as const;
 type TabName = typeof TABS[number];
 
 /** Deep merge saved partial config with full defaults */
@@ -55,12 +53,13 @@ function mergeConfig(saved: Partial<WidgetAdvancedConfig> | undefined): WidgetAd
   return {
     bubble: { ...d.bubble, ...saved.bubble },
     tooltip: { ...d.tooltip, ...saved.tooltip },
-    window: { ...d.window, ...saved.window, starterPrompts: saved.window?.starterPrompts ?? d.window.starterPrompts },
+    window: { ...d.window, ...saved.window, starterPrompts: saved.window?.starterPrompts ?? d.window.starterPrompts, socialLinks: saved.window?.socialLinks ?? d.window.socialLinks },
     botMessage: { ...d.botMessage, ...saved.botMessage },
     userMessage: { ...d.userMessage, ...saved.userMessage },
     inputField: { ...d.inputField, ...saved.inputField },
     footer: { ...d.footer, ...saved.footer },
-    advanced: { ...d.advanced, ...saved.advanced },
+    advanced: { ...d.advanced, ...saved.advanced, colorTransitions: { ...d.advanced.colorTransitions, ...saved.advanced?.colorTransitions }, fallingEffect: { ...d.advanced.fallingEffect, ...saved.advanced?.fallingEffect } },
+    welcomePage: { ...d.welcomePage, ...saved.welcomePage },
   };
 }
 
@@ -107,7 +106,7 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
 
   const [form, setForm] = useState<FormState>(widget ? widgetToForm(widget) : INITIAL_FORM);
   const [config, setConfig] = useState<WidgetAdvancedConfig>(() => mergeConfig(widget?.config));
-  const [activeTab, setActiveTab] = useState<TabName>('Bubble');
+  const [activeTab, setActiveTab] = useState<TabName>('Widget Settings');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -180,6 +179,11 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
     isDirtyRef.current = true;
   }, []);
 
+  const updateWelcomePage = useCallback(<K extends keyof WelcomePageConfig>(key: K, value: WelcomePageConfig[K]) => {
+    setConfig((prev) => ({ ...prev, welcomePage: { ...prev.welcomePage, [key]: value } }));
+    isDirtyRef.current = true;
+  }, []);
+
   async function handleSave(): Promise<string | null> {
     const validationErrors = validateWidgetForm({
       name: form.name,
@@ -207,6 +211,15 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
     setErrors({});
 
     try {
+      // Refresh session to ensure token is valid
+      const { data: sessionData } = await insforge.auth.getCurrentSession();
+      if (!sessionData?.session) {
+        showToast('Your session has expired. Please sign in again.', 'error');
+        router.push('/login');
+        setSaving(false);
+        return null;
+      }
+
       if (widget) {
         const { error } = await updateWidget(widget.id, user.id, {
           name: form.name,
@@ -273,6 +286,15 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
   async function handleDownload() {
     setDownloading(true);
     try {
+      // Refresh session to ensure token is valid
+      const { data: sessionData } = await insforge.auth.getCurrentSession();
+      if (!sessionData?.session) {
+        showToast('Your session has expired. Please sign in again.', 'error');
+        router.push('/login');
+        setDownloading(false);
+        return;
+      }
+
       const widgetId = await handleSave();
       if (!widgetId) {
         setDownloading(false);
@@ -345,116 +367,10 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
       <div className="grid gap-8 md:grid-cols-[2fr_3fr]">
         {/* Left: Form */}
         <div className="space-y-8">
-          <FormSection title="Widget Settings">
-            <Input
-              label="Widget Name"
-              placeholder="e.g., Support Bot"
-              value={form.name}
-              onChange={(e) => updateField('name', e.target.value)}
-              error={errors.name}
-              maxLength={100}
-              helperText="Internal label — not shown in the widget."
-              required
-            />
-          </FormSection>
-
-          <FormSection title="Webhook">
-            <Input
-              label="Webhook URL"
-              placeholder="https://your-n8n-instance.com/webhook/..."
-              value={form.webhookUrl}
-              onChange={(e) => updateField('webhookUrl', e.target.value)}
-              error={errors.webhookUrl}
-              required
-            />
-            <Input
-              label="Route"
-              placeholder="general"
-              value={form.webhookRoute}
-              onChange={(e) => updateField('webhookRoute', e.target.value)}
-              helperText='Defaults to "general" if left empty.'
-            />
-          </FormSection>
-
-          <FormSection title="Branding">
-            <Input
-              label="Logo URL"
-              placeholder="https://example.com/logo.png"
-              value={form.logoUrl}
-              onChange={(e) => updateField('logoUrl', e.target.value)}
-              helperText="Paste a URL to your logo image (hosted on Imgur, your website, etc.)."
-            />
-            <Input
-              label="Company / Bot Name"
-              placeholder="e.g., Acme Support"
-              value={form.companyName}
-              onChange={(e) => updateField('companyName', e.target.value)}
-              error={errors.companyName}
-              maxLength={50}
-              required
-            />
-            <Input
-              label="Welcome Text"
-              placeholder="e.g., Hi there! 👋 How can we help?"
-              value={form.welcomeText}
-              onChange={(e) => updateField('welcomeText', e.target.value)}
-              error={errors.welcomeText}
-              maxLength={200}
-              required
-            />
-            <Input
-              label="Response Time Text"
-              placeholder="e.g., We usually respond in a few minutes"
-              value={form.responseTimeText}
-              onChange={(e) => updateField('responseTimeText', e.target.value)}
-              maxLength={100}
-            />
-
-            {/* Powered By — locked on Free tier */}
-            <div className="relative">
-              <div className="pointer-events-none opacity-50">
-                <Input
-                  label="Powered By Text"
-                  value={form.poweredByText}
-                  onChange={() => {}}
-                  disabled
-                />
-              </div>
-              <div className="absolute right-2 top-0 flex items-center gap-1 text-xs text-gray-500">
-                <Lock className="h-3 w-3" />
-                <span>Pro only</span>
-              </div>
-            </div>
-            <div className="relative">
-              <div className="pointer-events-none opacity-50">
-                <Input
-                  label="Powered By Link"
-                  value={form.poweredByLink}
-                  onChange={() => {}}
-                  disabled
-                />
-              </div>
-              <div className="absolute right-2 top-0 flex items-center gap-1 text-xs text-gray-500">
-                <Lock className="h-3 w-3" />
-                <span>Pro only</span>
-              </div>
-            </div>
-          </FormSection>
-
-          <FormSection title="Style">
-            <div className="grid grid-cols-2 gap-4">
-              <ColorPicker label="Primary Color" value={form.primaryColor} onChange={(v) => updateField('primaryColor', v)} />
-              <ColorPicker label="Secondary Color" value={form.secondaryColor} onChange={(v) => updateField('secondaryColor', v)} />
-              <ColorPicker label="Background Color" value={form.backgroundColor} onChange={(v) => updateField('backgroundColor', v)} />
-              <ColorPicker label="Font Color" value={form.fontColor} onChange={(v) => updateField('fontColor', v)} />
-            </div>
-            <PositionToggle value={form.position} onChange={(v) => updateField('position', v)} />
-          </FormSection>
-
           {/* Tabbed customization sections */}
           <div>
             {/* Tab bar */}
-            <div className="flex border-b border-white/10 mb-6 overflow-x-auto scrollbar-hide">
+            <div className="flex border-b border-gray-200 dark:border-white/10 mb-6 overflow-x-auto scrollbar-hide">
               {TABS.map((tab) => (
                 <button
                   key={tab}
@@ -463,7 +379,7 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
                   className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
                     activeTab === tab
                       ? 'border-brand-primary text-brand-primary'
-                      : 'border-transparent text-gray-400 hover:text-gray-200'
+                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
                   }`}
                 >
                   {tab}
@@ -473,8 +389,26 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
 
             {/* Tab content */}
             <div className="min-h-[200px]">
+              {activeTab === 'Widget Settings' && (
+                <WidgetSettingsTab
+                  name={form.name}
+                  webhookUrl={form.webhookUrl}
+                  webhookRoute={form.webhookRoute}
+                  logoUrl={form.logoUrl}
+                  companyName={form.companyName}
+                  welcomeText={form.welcomeText}
+                  responseTimeText={form.responseTimeText}
+                  errors={errors}
+                  onFieldChange={(field, value) => updateField(field as keyof FormState, value as never)}
+                />
+              )}
               {activeTab === 'Bubble' && (
-                <BubbleTab config={config.bubble} position={form.position} onChange={updateBubble} />
+                <BubbleTab
+                  config={config.bubble}
+                  position={form.position}
+                  onChange={updateBubble}
+                  onPositionChange={(v) => updateField('position', v)}
+                />
               )}
               {activeTab === 'Tooltip' && (
                 <TooltipTab config={config.tooltip} onChange={updateTooltip} />
@@ -490,6 +424,9 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
                   onUserChange={updateUserMessage}
                   onInputChange={updateInputField}
                 />
+              )}
+              {activeTab === 'Welcome Page' && (
+                <WelcomePageTab config={config.welcomePage} onChange={updateWelcomePage} />
               )}
               {activeTab === 'Footer' && (
                 <FooterTab config={config.footer} onChange={updateFooter} />

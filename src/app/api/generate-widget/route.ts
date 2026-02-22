@@ -37,15 +37,29 @@ function resolveConfig(raw: unknown): WidgetAdvancedConfig {
   const d = DEFAULT_ADVANCED_CONFIG;
   if (!raw || typeof raw !== 'object') return { ...d };
   const c = raw as Partial<WidgetAdvancedConfig>;
+  const cWin = c.window as Partial<WidgetAdvancedConfig['window']> | undefined;
+  const cAdv = c.advanced as Partial<WidgetAdvancedConfig['advanced']> | undefined;
   return {
     bubble: { ...d.bubble, ...c.bubble },
     tooltip: { ...d.tooltip, ...c.tooltip },
-    window: { ...d.window, ...c.window, starterPrompts: (c.window as WidgetAdvancedConfig['window'])?.starterPrompts ?? d.window.starterPrompts },
+    window: {
+      ...d.window,
+      ...c.window,
+      starterPrompts: cWin?.starterPrompts ?? d.window.starterPrompts,
+      socialLinks: cWin?.socialLinks ?? d.window.socialLinks,
+    },
     botMessage: { ...d.botMessage, ...c.botMessage },
     userMessage: { ...d.userMessage, ...c.userMessage },
     inputField: { ...d.inputField, ...c.inputField },
     footer: { ...d.footer, ...c.footer },
-    advanced: { ...d.advanced, ...c.advanced },
+    advanced: {
+      ...d.advanced,
+      ...c.advanced,
+      availableLanguages: cAdv?.availableLanguages ?? d.advanced.availableLanguages,
+      colorTransitions: { ...d.advanced.colorTransitions, ...cAdv?.colorTransitions },
+      fallingEffect: { ...d.advanced.fallingEffect, ...cAdv?.fallingEffect },
+    },
+    welcomePage: { ...d.welcomePage, ...c.welcomePage },
   };
 }
 

@@ -38,6 +38,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
   const inp = ac.inputField;
   const footer = ac.footer;
   const adv = ac.advanced;
+  const wp = ac.welcomePage;
 
   const logoSrc = config.logoUrl || '';
   const logoHtml = logoSrc
@@ -78,7 +79,15 @@ function buildPreviewHtml(config: PreviewConfig): string {
     ? `<img src="${escapeHtml(bubbleIconSrc)}" alt="" style="width:${bubble.customIconSize}%;height:${bubble.customIconSize}%;object-fit:contain;border-radius:${bubble.customIconBorderRadius}px;" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'" /><svg style="display:none" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${escapeHtml(bubble.internalIconsColor)}" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
     : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${escapeHtml(bubble.internalIconsColor)}" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`;
 
-  // Footer
+  // Footer content
+  let footerLogoHtml = '';
+  if (footer.showLogo) {
+    const fLogoSrc = footer.logoSource === 'custom' && footer.customLogoUrl ? footer.customLogoUrl : logoSrc;
+    if (fLogoSrc) {
+      footerLogoHtml = `<img src="${escapeHtml(fLogoSrc)}" alt="" style="width:${footer.logoSize}px;height:${footer.logoSize}px;object-fit:contain;" onerror="this.style.display='none'" />`;
+    }
+  }
+
   let footerContent = '';
   if (footer.mode === 'html' && footer.customHtml) {
     footerContent = `<div class="powered-by" style="color:${escapeHtml(footer.textColor)};">${footer.customHtml}</div>`;
@@ -86,7 +95,9 @@ function buildPreviewHtml(config: PreviewConfig): string {
     const footerText = footer.text || config.poweredByText;
     const footerLink = footer.companyLink || config.poweredByLink;
     const footerCompany = footer.companyName || '';
-    footerContent = `<div class="powered-by" style="color:${escapeHtml(footer.textColor)};"><a href="${escapeHtml(footerLink)}" target="_blank" rel="noopener noreferrer" style="color:${escapeHtml(footer.textColor)};">${escapeHtml(footerText)}${footerCompany ? ' ' + escapeHtml(footerCompany) : ''}</a></div>`;
+    const leftLogo = footer.showLogo && (footer.logoPosition === 'left' || footer.logoPosition === 'both') ? footerLogoHtml : '';
+    const rightLogo = footer.showLogo && (footer.logoPosition === 'right' || footer.logoPosition === 'both') ? footerLogoHtml : '';
+    footerContent = `<div class="powered-by" style="color:${escapeHtml(footer.textColor)};display:flex;align-items:center;justify-content:center;gap:6px;">${leftLogo}<a href="${escapeHtml(footerLink)}" target="_blank" rel="noopener noreferrer" style="color:${escapeHtml(footer.textColor)};">${escapeHtml(footerText)}${footerCompany ? ' ' + escapeHtml(footerCompany) : ''}</a>${rightLogo}</div>`;
   }
 
   // Sample messages for preview
@@ -96,6 +107,69 @@ function buildPreviewHtml(config: PreviewConfig): string {
   const userAvatarHtml = usr.showAvatar
     ? `<div class="msg-avatar" style="background:${escapeHtml(usr.backgroundColor)};border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${escapeHtml(usr.textColor)};font-size:12px;">${usr.avatarUrl ? `<img src="${escapeHtml(usr.avatarUrl)}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.textContent='U'" />` : 'U'}</div>`
     : '';
+
+  // Timestamps
+  const timestampHtml = win.showTimestamps
+    ? `<div class="msg-timestamp" style="color:${escapeHtml(win.timestampColor)};font-size:${win.timestampFontSize}px;">12:34 PM</div>`
+    : '';
+
+  // Typing indicator
+  const typingHtml = bot.showTypingIndicator
+    ? `<div class="msg-row"><${botAvatarHtml ? 'span' : 'span'}>${botAvatarHtml}<div class="typing-indicator" style="background:${escapeHtml(bot.backgroundColor)};"><span style="background:${escapeHtml(bot.typingIndicatorColor)};"></span><span style="background:${escapeHtml(bot.typingIndicatorColor)};"></span><span style="background:${escapeHtml(bot.typingIndicatorColor)};"></span></div></div>`
+    : '';
+
+  // Social icons row
+  const socialIconsHtml = win.showSocialIcons && win.socialLinks.length > 0
+    ? `<div class="social-icons" style="display:flex;gap:8px;padding:4px 16px;">${win.socialLinks.map((l) => `<a href="#" title="${escapeHtml(l.platform)}" style="color:${escapeHtml(win.socialIconColor)};"><svg width="${win.socialIconSize}" height="${win.socialIconSize}" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg></a>`).join('')}</div>`
+    : '';
+
+  // Shadow/glow
+  const shadowStyle = win.shadowEnabled
+    ? `box-shadow: 0 0 ${win.shadowBlur}px ${win.shadowSpread}px ${escapeHtml(win.shadowColor1)};`
+    : '';
+
+  // Header action buttons
+  const backBtnHtml = win.showBackToWelcome ? `<button class="header-action" title="Back" onclick="backToWelcome()">&#8592;</button>` : '';
+  const refreshBtnHtml = win.showRefreshButton ? `<button class="header-action" title="Refresh" onclick="refreshChat()">&#8635;</button>` : '';
+
+  // Send button icon
+  let sendIconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+  if (win.sendButtonIcon === 'arrow-up') {
+    sendIconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>';
+  } else if (win.sendButtonIcon === 'send') {
+    sendIconSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>';
+  }
+
+  // Emoji button
+  const emojiBtnHtml = inp.showEmojiPicker
+    ? `<button class="emoji-btn" title="Emoji" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px;">😊</button>`
+    : '';
+
+  // Welcome logo
+  let welcomeLogoHtml = '';
+  if (wp.showWelcomeLogo) {
+    const wLogoSrc = wp.welcomeLogoSource === 'custom' && wp.welcomeCustomLogoUrl ? wp.welcomeCustomLogoUrl : logoSrc;
+    if (wLogoSrc) {
+      welcomeLogoHtml = `<img class="welcome-logo" src="${escapeHtml(wLogoSrc)}" alt="" style="width:${wp.welcomeLogoSize}px;height:${wp.welcomeLogoSize}px;object-fit:contain;margin-bottom:12px;" onerror="this.style.display='none'" />`;
+    } else {
+      welcomeLogoHtml = `<div class="welcome-logo-placeholder" style="width:${wp.welcomeLogoSize}px;height:${wp.welcomeLogoSize}px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;margin-bottom:12px;"><svg width="${Math.round(wp.welcomeLogoSize * 0.5)}" height="${Math.round(wp.welcomeLogoSize * 0.5)}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>`;
+    }
+  }
+
+  // Bubble animation CSS
+  let bubbleAnimCss = '';
+  if (bubble.animation !== 'none') {
+    const speedMap: Record<string, string> = { slow: '2s', normal: '1s', fast: '0.5s' };
+    const dur = speedMap[bubble.animationSpeed] || '1s';
+    const animMap: Record<string, string> = {
+      bounce: `@keyframes bubbleAnim { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }`,
+      float: `@keyframes bubbleAnim { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }`,
+      pulse: `@keyframes bubbleAnim { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }`,
+      shake: `@keyframes bubbleAnim { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }`,
+      wiggle: `@keyframes bubbleAnim { 0%,100% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } }`,
+    };
+    bubbleAnimCss = `${animMap[bubble.animation] || ''}\n.toggle-btn { animation: bubbleAnim ${dur} ease-in-out ${bubble.animateOnlyOnLoad ? '1' : 'infinite'}; }`;
+  }
 
   return `<!DOCTYPE html>
 <html>
@@ -134,6 +208,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     overflow: hidden;
   }
   .toggle-btn:hover { transform: scale(1.05); }
+  ${bubbleAnimCss}
 
   .tooltip {
     position: absolute;
@@ -174,6 +249,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     overflow: hidden;
     z-index: 10;
     font-size: ${win.fontSize}px;
+    ${shadowStyle}
   }
   .chat-container.open { display: flex; }
   .chat-container.mode-chat .welcome-screen { display: none; }
@@ -188,19 +264,25 @@ function buildPreviewHtml(config: PreviewConfig): string {
     border-bottom: 1px solid rgba(0,0,0,0.08);
   }
   .brand-header img.brand-logo { width: 28px; height: 28px; border-radius: 4px; }
-  .brand-header .name { font-size: 15px; font-weight: 600; color: var(--font); }
+  .brand-header .name { font-size: 15px; font-weight: 600; color: var(--font); flex: 1; }
   .logo-placeholder {
     background: linear-gradient(135deg, var(--primary), var(--secondary));
     display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; flex-shrink: 0;
   }
   .title-placeholder { width: 28px; height: 28px; border-radius: 4px; }
+  .header-actions { display: flex; gap: 4px; align-items: center; }
+  .header-action {
+    background: none; border: none; cursor: pointer; color: var(--font); opacity: 0.5; font-size: 16px; padding: 4px; border-radius: 4px;
+  }
+  .header-action:hover { opacity: 1; background: rgba(0,0,0,0.05); }
   .close-btn {
-    margin-left: auto; background: none; border: none; cursor: pointer; color: var(--font); opacity: 0.5; font-size: 18px; padding: 4px;
+    background: none; border: none; cursor: pointer; color: var(--font); opacity: 0.5; font-size: 18px; padding: 4px;
   }
   .close-btn:hover { opacity: 1; }
 
   .welcome-screen {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;
+    background: ${wp.welcomeBackgroundColor ? escapeHtml(wp.welcomeBackgroundColor) : 'transparent'};
   }
   .welcome-text { font-size: 20px; font-weight: 600; color: var(--font); margin-bottom: 20px; line-height: 1.3; }
   .start-btn {
@@ -231,6 +313,24 @@ function buildPreviewHtml(config: PreviewConfig): string {
   }
   .msg-bubble.bot { background: ${escapeHtml(bot.backgroundColor)}; color: ${escapeHtml(bot.textColor)}; }
   .msg-bubble.user { background: ${escapeHtml(usr.backgroundColor)}; color: ${escapeHtml(usr.textColor)}; }
+  .msg-timestamp { font-size: 10px; opacity: 0.6; margin-top: 2px; padding: 0 4px; }
+  .msg-row.user .msg-timestamp { text-align: right; }
+
+  .typing-indicator {
+    display: inline-flex; gap: 4px; padding: 10px 14px; border-radius: ${win.messageBorderRadius}px;
+  }
+  .typing-indicator span {
+    width: 6px; height: 6px; border-radius: 50%; animation: typingDots 1.4s infinite;
+  }
+  .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingDots {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1); }
+  }
+
+  .social-icons a { display: inline-flex; opacity: 0.7; }
+  .social-icons a:hover { opacity: 1; }
 
   .input-area {
     display: none; padding: 8px 12px; border-top: 1px solid rgba(0,0,0,0.08); gap: 8px; align-items: center;
@@ -241,9 +341,10 @@ function buildPreviewHtml(config: PreviewConfig): string {
     font-size: 14px; outline: none; background: ${escapeHtml(inp.backgroundColor)}; color: ${escapeHtml(inp.textColor)};
   }
   .input-area input::placeholder { color: ${escapeHtml(inp.textColor)}; opacity: 0.5; }
+  .emoji-btn { flex-shrink: 0; }
   .send-btn {
     width: 36px; height: 36px; border: none; border-radius: ${inp.sendButtonBorderRadius}px;
-    background: ${escapeHtml(inp.sendButtonColor)}; color: #fff; cursor: pointer; display: flex;
+    background: ${escapeHtml(inp.sendButtonColor)}; color: #fff; cursor: pointer; display: ${win.showSendButton ? 'flex' : 'none'};
     align-items: center; justify-content: center; flex-shrink: 0;
   }
 
@@ -254,6 +355,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     font-size: 11px; text-decoration: none; opacity: 0.5;
   }
   .powered-by a:hover { opacity: 0.7; }
+  .powered-by img { vertical-align: middle; }
 
   .placeholder { opacity: 0.4; font-style: italic; }
 
@@ -273,14 +375,20 @@ function buildPreviewHtml(config: PreviewConfig): string {
       ${titleAvatarHtml}
       ${titleAvatarPlaceholder}
       <span class="name">${displayTitle ? escapeHtml(displayTitle) : '<span class="placeholder">Company Name</span>'}</span>
-      <button class="close-btn" onclick="toggleChat()">&times;</button>
+      <div class="header-actions">
+        ${backBtnHtml}
+        ${refreshBtnHtml}
+        <button class="close-btn" onclick="toggleChat()">&times;</button>
+      </div>
     </div>
+    ${socialIconsHtml}
 
     <div class="welcome-screen">
+      ${welcomeLogoHtml}
       <div class="welcome-text">${config.welcomeText ? escapeHtml(win.welcomeMessage || config.welcomeText) : '<span class="placeholder">Welcome! How can we help?</span>'}</div>
       <button class="start-btn" onclick="startChat()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-        Send us a message
+        ${escapeHtml(wp.welcomeButtonText || 'Send us a message')}
       </button>
       ${config.responseTimeText ? `<div class="response-time">${escapeHtml(config.responseTimeText)}</div>` : ''}
       ${promptsHtml ? `<div class="starter-prompts">${promptsHtml}</div>` : ''}
@@ -289,22 +397,33 @@ function buildPreviewHtml(config: PreviewConfig): string {
     <div class="messages-area">
       <div class="msg-row">
         ${botAvatarHtml}
-        <div class="msg-bubble bot">Hello! How can I help you today?</div>
+        <div>
+          <div class="msg-bubble bot">Hello! How can I help you today?</div>
+          ${timestampHtml}
+        </div>
       </div>
       <div class="msg-row user">
         ${userAvatarHtml}
-        <div class="msg-bubble user">I have a question about your product.</div>
+        <div>
+          <div class="msg-bubble user">I have a question about your product.</div>
+          ${timestampHtml}
+        </div>
       </div>
       <div class="msg-row">
         ${botAvatarHtml}
-        <div class="msg-bubble bot">Sure! I'd be happy to help. What would you like to know?</div>
+        <div>
+          <div class="msg-bubble bot">Sure! I'd be happy to help. What would you like to know?</div>
+          ${timestampHtml}
+        </div>
       </div>
+      ${typingHtml}
     </div>
 
     <div class="input-area">
+      ${emojiBtnHtml}
       <input type="text" placeholder="${escapeHtml(inp.placeholder)}" readonly />
       <button class="send-btn">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        ${sendIconSvg}
       </button>
     </div>
 
@@ -323,7 +442,6 @@ function buildPreviewHtml(config: PreviewConfig): string {
     } else {
       c.classList.remove('open');
     }
-    // Hide tooltip when chat opens
     var tt = document.querySelector('.tooltip');
     if (tt && chatOpen) tt.style.display = 'none';
   }
@@ -331,6 +449,16 @@ function buildPreviewHtml(config: PreviewConfig): string {
     var c = document.getElementById('chatContainer');
     c.classList.add('mode-chat');
     chatMode = 'chat';
+  }
+  function backToWelcome() {
+    var c = document.getElementById('chatContainer');
+    c.classList.remove('mode-chat');
+    chatMode = 'welcome';
+  }
+  function refreshChat() {
+    var c = document.getElementById('chatContainer');
+    c.classList.remove('mode-chat');
+    chatMode = 'welcome';
   }
 </script>
 </body>
@@ -352,28 +480,16 @@ export default function PreviewPane({ config }: PreviewPaneProps) {
 
   return (
     <div className="sticky top-24">
-      {/* Browser mockup frame */}
-      <div className="overflow-hidden rounded-xl border border-white/10 bg-[#1a1a2e]">
-        {/* Chrome bar */}
-        <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5">
-          <div className="flex gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-red-500/70" />
-            <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
-            <span className="h-3 w-3 rounded-full bg-green-500/70" />
-          </div>
-          <div className="ml-4 flex-1 rounded-md bg-white/5 px-3 py-1 text-xs text-gray-500">
-            yourwebsite.com
-          </div>
-        </div>
-        {/* Preview */}
+      {/* Preview area — no browser frame */}
+      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 bg-[#f5f5f5] dark:bg-[#1a1a2e]">
         <iframe
           ref={iframeRef}
           title="Widget Preview"
-          className="h-[520px] w-full bg-white/5"
+          className="h-[520px] w-full"
           sandbox="allow-scripts"
         />
       </div>
-      <p className="mt-2 text-center text-xs text-gray-500">
+      <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
         Click the chat bubble to open/close &bull; Click &ldquo;Send us a message&rdquo; for chat view
       </p>
     </div>

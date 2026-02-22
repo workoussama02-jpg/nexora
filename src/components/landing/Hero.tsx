@@ -20,7 +20,7 @@ export default function Hero() {
             </span>{' '}
             in Minutes
           </h1>
-          <p className="mt-6 text-lg text-gray-400 sm:text-xl">
+          <p className="mt-6 text-lg text-gray-500 dark:text-gray-400 sm:text-xl">
             Download the files, host them yourself, embed anywhere — no monthly
             fees for the widget.
           </p>
@@ -37,7 +37,7 @@ export default function Hero() {
 
         {/* Right — Widget mockup */}
         <div className="relative mx-auto w-full max-w-sm">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-4 backdrop-blur-sm">
             {/* Mini browser chrome */}
             <div className="mb-3 flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 rounded-full bg-red-500/60" />
@@ -45,7 +45,7 @@ export default function Hero() {
               <span className="h-2.5 w-2.5 rounded-full bg-green-500/60" />
             </div>
             {/* Widget preview illustration */}
-            <div className="relative aspect-[380/500] overflow-hidden rounded-xl border border-white/10 bg-[#0f0f1a]">
+            <div className="relative aspect-[380/500] overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 bg-[#0f0f1a]">
               {/* Chat header */}
               <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
                 <div className="h-8 w-8 rounded-full bg-brand-primary/30" />

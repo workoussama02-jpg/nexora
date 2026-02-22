@@ -47,15 +47,15 @@ export default function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/60" onClick={onCancel} />
       <div
-        className="relative w-full max-w-md rounded-xl border border-white/10 bg-[#1a1a2e] p-6 shadow-xl"
+        className="relative w-full max-w-md rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a2e] p-6 shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
       >
-        <h2 id="modal-title" className="text-lg font-semibold text-white">
+        <h2 id="modal-title" className="text-lg font-semibold">
           {title}
         </h2>
-        <p className="mt-2 text-sm text-gray-300">{message}</p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
           <Button ref={cancelRef} variant="ghost" onClick={onCancel} disabled={loading}>
             Cancel

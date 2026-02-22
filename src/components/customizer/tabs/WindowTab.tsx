@@ -1,7 +1,7 @@
 // Window tab — chat window customization with collapsible sub-sections
 'use client';
 
-import type { WindowConfig, BotMessageConfig, UserMessageConfig, InputFieldConfig, WindowBorderRadius } from '@/lib/types';
+import type { WindowConfig, BotMessageConfig, UserMessageConfig, InputFieldConfig, WindowBorderRadius, TimestampFormat, SendButtonIcon, SocialLink } from '@/lib/types';
 import ColorPicker from '../ColorPicker';
 import CollapsibleSection from '../CollapsibleSection';
 import Toggle from '@/components/ui/Toggle';
@@ -27,6 +27,21 @@ const WINDOW_RADIUS_OPTIONS = [
   { label: 'Rounded', value: 'rounded' },
   { label: 'None', value: 'none' },
 ];
+
+const TIMESTAMP_FORMAT_OPTIONS = [
+  { label: '12-hour', value: '12-hour' },
+  { label: '24-hour', value: '24-hour' },
+  { label: 'Relative', value: 'relative' },
+  { label: 'Full', value: 'full' },
+];
+
+const SEND_BUTTON_ICON_OPTIONS = [
+  { label: 'Arrow Up', value: 'arrow-up' },
+  { label: 'Paper Plane', value: 'paper-plane' },
+  { label: 'Send', value: 'send' },
+];
+
+const SOCIAL_PLATFORMS = ['Website', 'Facebook', 'Twitter/X', 'Instagram', 'LinkedIn', 'YouTube', 'TikTok', 'WhatsApp', 'Telegram', 'GitHub'];
 
 export default function WindowTab({
   windowConfig, botMessage, userMessage, inputField,
@@ -86,7 +101,7 @@ export default function WindowTab({
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-200">Starter Prompts</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Starter Prompts</span>
             {windowConfig.starterPrompts.length < 5 && (
               <button type="button" onClick={addPrompt} className="flex items-center gap-1 text-xs text-brand-primary hover:underline">
                 <Plus className="h-3 w-3" /> Add Prompt
@@ -94,7 +109,7 @@ export default function WindowTab({
             )}
           </div>
           {windowConfig.starterPrompts.length === 0 && (
-            <p className="text-xs text-gray-500">No prompts yet. Add up to 5 starter prompts.</p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">No prompts yet. Add up to 5 starter prompts.</p>
           )}
           <div className="space-y-2">
             {windowConfig.starterPrompts.map((prompt, i) => (
@@ -105,7 +120,7 @@ export default function WindowTab({
                   onChange={(e) => updatePrompt(i, e.target.value)}
                   placeholder={`Prompt ${i + 1}`}
                   maxLength={100}
-                  className="flex-1 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none transition focus:border-brand-primary"
+                  className="flex-1 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary"
                 />
                 <button type="button" onClick={() => removePrompt(i)} className="text-gray-400 hover:text-red-400 transition p-2">
                   <Trash2 className="h-4 w-4" />
@@ -123,6 +138,103 @@ export default function WindowTab({
         <Slider label="Message Border Radius" value={windowConfig.messageBorderRadius} onChange={(v) => onWindowChange('messageBorderRadius', v)} min={0} max={20} unit="px" />
         <Toggle label="Render HTML in Bot Responses" checked={windowConfig.renderHtml} onChange={(v) => onWindowChange('renderHtml', v)} helperText="When on, bot messages render HTML/Markdown." />
         <Toggle label="Clear Chat on Reload" checked={windowConfig.clearOnReload} onChange={(v) => onWindowChange('clearOnReload', v)} />
+        <Toggle label="Show Back to Welcome Button" checked={windowConfig.showBackToWelcome} onChange={(v) => onWindowChange('showBackToWelcome', v)} helperText="Shows a back button in the header to return to welcome screen." />
+        <Toggle label="Show Refresh Button" checked={windowConfig.showRefreshButton} onChange={(v) => onWindowChange('showRefreshButton', v)} helperText="Shows a refresh button in the header to reset chat." />
+      </CollapsibleSection>
+
+      {/* Message Timestamps */}
+      <CollapsibleSection title="Message Timestamps">
+        <Toggle label="Show Timestamps" checked={windowConfig.showTimestamps} onChange={(v) => onWindowChange('showTimestamps', v)} />
+        {windowConfig.showTimestamps && (
+          <>
+            <RadioGroup
+              label="Timestamp Format"
+              value={windowConfig.timestampFormat}
+              onChange={(v) => onWindowChange('timestampFormat', v as TimestampFormat)}
+              options={TIMESTAMP_FORMAT_OPTIONS}
+            />
+            <ColorPicker label="Timestamp Color" value={windowConfig.timestampColor} onChange={(v) => onWindowChange('timestampColor', v)} />
+            <NumberInput label="Timestamp Font Size" value={windowConfig.timestampFontSize} onChange={(v) => onWindowChange('timestampFontSize', v)} min={8} max={16} unit="px" />
+          </>
+        )}
+      </CollapsibleSection>
+
+      {/* Header Social Icons */}
+      <CollapsibleSection title="Header Social Icons">
+        <Toggle label="Show Social Icons" checked={windowConfig.showSocialIcons} onChange={(v) => onWindowChange('showSocialIcons', v)} />
+        {windowConfig.showSocialIcons && (
+          <>
+            <Slider label="Icon Size" value={windowConfig.socialIconSize} onChange={(v) => onWindowChange('socialIconSize', v)} min={12} max={30} unit="px" />
+            <ColorPicker label="Icon Color" value={windowConfig.socialIconColor} onChange={(v) => onWindowChange('socialIconColor', v)} />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Social Links</span>
+                {windowConfig.socialLinks.length < 5 && (
+                  <button type="button" onClick={() => onWindowChange('socialLinks', [...windowConfig.socialLinks, { platform: 'Website', url: '' }])} className="flex items-center gap-1 text-xs text-brand-primary hover:underline">
+                    <Plus className="h-3 w-3" /> Add Link
+                  </button>
+                )}
+              </div>
+              {windowConfig.socialLinks.length === 0 && (
+                <p className="text-xs text-gray-400 dark:text-gray-500">No social links yet. Add up to 5.</p>
+              )}
+              <div className="space-y-3">
+                {windowConfig.socialLinks.map((link: SocialLink, i: number) => (
+                  <div key={i} className="space-y-1 rounded-lg border border-gray-200 dark:border-white/10 p-3">
+                    <div className="flex items-center justify-between">
+                      <select
+                        value={link.platform}
+                        onChange={(e) => {
+                          const updated = [...windowConfig.socialLinks];
+                          updated[i] = { ...updated[i], platform: e.target.value };
+                          onWindowChange('socialLinks', updated);
+                        }}
+                        className="text-sm rounded border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-2 py-1 text-gray-900 dark:text-white outline-none"
+                      >
+                        {SOCIAL_PLATFORMS.map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                      <button type="button" onClick={() => onWindowChange('socialLinks', windowConfig.socialLinks.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-400 transition p-1">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={link.url}
+                      onChange={(e) => {
+                        const updated = [...windowConfig.socialLinks];
+                        updated[i] = { ...updated[i], url: e.target.value };
+                        onWindowChange('socialLinks', updated);
+                      }}
+                      placeholder="https://..."
+                      className="w-full rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </CollapsibleSection>
+
+      {/* Shadow & Glow */}
+      <CollapsibleSection title="Shadow & Glow">
+        <Toggle label="Enable Shadow / Glow" checked={windowConfig.shadowEnabled} onChange={(v) => onWindowChange('shadowEnabled', v)} />
+        {windowConfig.shadowEnabled && (
+          <>
+            <div className="grid grid-cols-2 gap-4">
+              <ColorPicker label="Shadow Color 1" value={windowConfig.shadowColor1} onChange={(v) => onWindowChange('shadowColor1', v)} />
+              <ColorPicker label="Shadow Color 2" value={windowConfig.shadowColor2} onChange={(v) => onWindowChange('shadowColor2', v)} />
+            </div>
+            <Slider label="Shadow Blur" value={windowConfig.shadowBlur} onChange={(v) => onWindowChange('shadowBlur', v)} min={5} max={50} unit="px" />
+            <Slider label="Shadow Spread" value={windowConfig.shadowSpread} onChange={(v) => onWindowChange('shadowSpread', v)} min={1} max={20} unit="px" />
+            <Toggle label="Animate Shadow" checked={windowConfig.shadowAnimate} onChange={(v) => onWindowChange('shadowAnimate', v)} />
+            {windowConfig.shadowAnimate && (
+              <Slider label="Animation Speed" value={windowConfig.shadowAnimationSpeed} onChange={(v) => onWindowChange('shadowAnimationSpeed', v)} min={1} max={10} unit="s" />
+            )}
+          </>
+        )}
       </CollapsibleSection>
 
       {/* Bot Message Settings */}
@@ -136,6 +248,10 @@ export default function WindowTab({
           <Input label="Bot Avatar URL" placeholder="https://example.com/bot-avatar.png" value={botMessage.avatarUrl} onChange={(e) => onBotChange('avatarUrl', e.target.value)} />
         )}
         <Toggle label="Show Copy to Clipboard Icon" checked={botMessage.showCopyIcon} onChange={(v) => onBotChange('showCopyIcon', v)} />
+        <Toggle label="Show Typing Indicator" checked={botMessage.showTypingIndicator} onChange={(v) => onBotChange('showTypingIndicator', v)} helperText="Shows animated typing dots before bot responds." />
+        {botMessage.showTypingIndicator && (
+          <ColorPicker label="Typing Indicator Color" value={botMessage.typingIndicatorColor} onChange={(v) => onBotChange('typingIndicatorColor', v)} />
+        )}
       </CollapsibleSection>
 
       {/* User Message Settings */}
@@ -167,6 +283,16 @@ export default function WindowTab({
           <Input label="Max Characters Warning" value={inputField.maxCharsWarning} onChange={(e) => onInputChange('maxCharsWarning', e.target.value)} />
         )}
         <Toggle label="Auto Focus" checked={inputField.autoFocus} onChange={(v) => onInputChange('autoFocus', v)} helperText="Focus the input when the chat window opens." />
+        <Toggle label="Show Send Button" checked={windowConfig.showSendButton} onChange={(v) => onWindowChange('showSendButton', v)} />
+        {windowConfig.showSendButton && (
+          <RadioGroup
+            label="Send Button Icon"
+            value={windowConfig.sendButtonIcon}
+            onChange={(v) => onWindowChange('sendButtonIcon', v as SendButtonIcon)}
+            options={SEND_BUTTON_ICON_OPTIONS}
+          />
+        )}
+        <Toggle label="Show Emoji Picker" checked={inputField.showEmojiPicker} onChange={(v) => onInputChange('showEmojiPicker', v)} helperText="Adds an emoji button next to the text input." />
       </CollapsibleSection>
     </div>
   );

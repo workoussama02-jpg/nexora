@@ -46,6 +46,16 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
     .map((p) => `'${escapeForJs(p)}'`)
     .join(', ');
 
+  // Build social links array string
+  const socialLinksStr = cfg.window.socialLinks
+    .map((l) => `{ platform: '${escapeForJs(l.platform)}', url: '${escapeForJs(l.url)}' }`)
+    .join(', ');
+
+  // Build available languages array string
+  const availableLangsStr = cfg.advanced.availableLanguages
+    .map((l) => `'${escapeForJs(l)}'`)
+    .join(', ');
+
   // Build the HTML embed snippet with full ChatWidgetConfig
   const htmlContent = `<!-- Nexora Chat Widget -->
 <script>
@@ -82,7 +92,10 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
             rightPosition: ${cfg.bubble.rightPosition},
             bottomPosition: ${cfg.bubble.bottomPosition},
             autoOpen: ${cfg.bubble.autoOpen},
-            openDelay: ${cfg.bubble.openDelay}
+            openDelay: ${cfg.bubble.openDelay},
+            animation: '${escapeForJs(cfg.bubble.animation)}',
+            animationSpeed: '${escapeForJs(cfg.bubble.animationSpeed)}',
+            animateOnlyOnLoad: ${cfg.bubble.animateOnlyOnLoad}
         },
         tooltip: {
             display: ${cfg.tooltip.display},
@@ -110,14 +123,35 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
             starterPromptFontSize: ${cfg.window.starterPromptFontSize},
             messageBorderRadius: ${cfg.window.messageBorderRadius},
             renderHtml: ${cfg.window.renderHtml},
-            clearOnReload: ${cfg.window.clearOnReload}
+            clearOnReload: ${cfg.window.clearOnReload},
+            showBackToWelcome: ${cfg.window.showBackToWelcome},
+            showRefreshButton: ${cfg.window.showRefreshButton},
+            showSendButton: ${cfg.window.showSendButton},
+            sendButtonIcon: '${escapeForJs(cfg.window.sendButtonIcon)}',
+            showTimestamps: ${cfg.window.showTimestamps},
+            timestampFormat: '${escapeForJs(cfg.window.timestampFormat)}',
+            timestampColor: '${escapeForJs(cfg.window.timestampColor)}',
+            timestampFontSize: ${cfg.window.timestampFontSize},
+            showSocialIcons: ${cfg.window.showSocialIcons},
+            socialLinks: [${socialLinksStr}],
+            socialIconSize: ${cfg.window.socialIconSize},
+            socialIconColor: '${escapeForJs(cfg.window.socialIconColor)}',
+            shadowEnabled: ${cfg.window.shadowEnabled},
+            shadowColor1: '${escapeForJs(cfg.window.shadowColor1)}',
+            shadowColor2: '${escapeForJs(cfg.window.shadowColor2)}',
+            shadowBlur: ${cfg.window.shadowBlur},
+            shadowSpread: ${cfg.window.shadowSpread},
+            shadowAnimate: ${cfg.window.shadowAnimate},
+            shadowAnimationSpeed: ${cfg.window.shadowAnimationSpeed}
         },
         botMessage: {
             backgroundColor: '${escapeForJs(cfg.botMessage.backgroundColor)}',
             textColor: '${escapeForJs(cfg.botMessage.textColor)}',
             showAvatar: ${cfg.botMessage.showAvatar},
             avatarUrl: '${escapeForJs(cfg.botMessage.avatarUrl)}',
-            showCopyIcon: ${cfg.botMessage.showCopyIcon}
+            showCopyIcon: ${cfg.botMessage.showCopyIcon},
+            showTypingIndicator: ${cfg.botMessage.showTypingIndicator},
+            typingIndicatorColor: '${escapeForJs(cfg.botMessage.typingIndicatorColor)}'
         },
         userMessage: {
             backgroundColor: '${escapeForJs(cfg.userMessage.backgroundColor)}',
@@ -134,7 +168,8 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
             sendButtonBorderRadius: ${cfg.inputField.sendButtonBorderRadius},
             maxCharacters: ${cfg.inputField.maxCharacters},
             maxCharsWarning: '${escapeForJs(cfg.inputField.maxCharsWarning)}',
-            autoFocus: ${cfg.inputField.autoFocus}
+            autoFocus: ${cfg.inputField.autoFocus},
+            showEmojiPicker: ${cfg.inputField.showEmojiPicker}
         },
         footer: {
             mode: '${escapeForJs(cfg.footer.mode)}',
@@ -142,10 +177,60 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
             companyName: '${escapeForJs(cfg.footer.companyName)}',
             companyLink: '${escapeForJs(cfg.footer.companyLink)}',
             textColor: '${escapeForJs(cfg.footer.textColor)}',
-            customHtml: '${escapeForJs(cfg.footer.customHtml)}'
+            customHtml: '${escapeForJs(cfg.footer.customHtml)}',
+            showLogo: ${cfg.footer.showLogo},
+            logoSource: '${escapeForJs(cfg.footer.logoSource)}',
+            customLogoUrl: '${escapeForJs(cfg.footer.customLogoUrl)}',
+            logoPosition: '${escapeForJs(cfg.footer.logoPosition)}',
+            logoSize: ${cfg.footer.logoSize}
         },
         advanced: {
-            customCss: '${escapeForJs(cfg.advanced.customCss)}'
+            customCss: '${escapeForJs(cfg.advanced.customCss)}',
+            enableLanguageSelector: ${cfg.advanced.enableLanguageSelector},
+            availableLanguages: [${availableLangsStr}],
+            defaultLanguage: '${escapeForJs(cfg.advanced.defaultLanguage)}',
+            enableCustomCursor: ${cfg.advanced.enableCustomCursor},
+            cursorType: '${escapeForJs(cfg.advanced.cursorType)}',
+            presetCursor: '${escapeForJs(cfg.advanced.presetCursor)}',
+            customCursorUrl: '${escapeForJs(cfg.advanced.customCursorUrl)}',
+            enableColorTransitions: ${cfg.advanced.enableColorTransitions},
+            colorTransitions: {
+                headerTransition: ${cfg.advanced.colorTransitions.headerTransition},
+                headerColor1: '${escapeForJs(cfg.advanced.colorTransitions.headerColor1)}',
+                headerColor2: '${escapeForJs(cfg.advanced.colorTransitions.headerColor2)}',
+                toggleTransition: ${cfg.advanced.colorTransitions.toggleTransition},
+                toggleColor1: '${escapeForJs(cfg.advanced.colorTransitions.toggleColor1)}',
+                toggleColor2: '${escapeForJs(cfg.advanced.colorTransitions.toggleColor2)}',
+                userMessageTransition: ${cfg.advanced.colorTransitions.userMessageTransition},
+                userMessageColor1: '${escapeForJs(cfg.advanced.colorTransitions.userMessageColor1)}',
+                userMessageColor2: '${escapeForJs(cfg.advanced.colorTransitions.userMessageColor2)}',
+                botMessageTransition: ${cfg.advanced.colorTransitions.botMessageTransition},
+                botMessageColor1: '${escapeForJs(cfg.advanced.colorTransitions.botMessageColor1)}',
+                botMessageColor2: '${escapeForJs(cfg.advanced.colorTransitions.botMessageColor2)}',
+                transitionSpeed: ${cfg.advanced.colorTransitions.transitionSpeed}
+            },
+            enableFallingEffect: ${cfg.advanced.enableFallingEffect},
+            fallingEffect: {
+                effectSource: '${escapeForJs(cfg.advanced.fallingEffect.effectSource)}',
+                customImageUrl: '${escapeForJs(cfg.advanced.fallingEffect.customImageUrl)}',
+                emoji: '${escapeForJs(cfg.advanced.fallingEffect.emoji)}',
+                particleCount: ${cfg.advanced.fallingEffect.particleCount},
+                fallSpeed: '${escapeForJs(cfg.advanced.fallingEffect.fallSpeed)}',
+                particleSize: ${cfg.advanced.fallingEffect.particleSize},
+                showOnDesktop: ${cfg.advanced.fallingEffect.showOnDesktop},
+                showOnMobile: ${cfg.advanced.fallingEffect.showOnMobile}
+            }
+        },
+        welcomePage: {
+            welcomeButtonText: '${escapeForJs(cfg.welcomePage.welcomeButtonText)}',
+            showWelcomeLogo: ${cfg.welcomePage.showWelcomeLogo},
+            welcomeLogoSource: '${escapeForJs(cfg.welcomePage.welcomeLogoSource)}',
+            welcomeCustomLogoUrl: '${escapeForJs(cfg.welcomePage.welcomeCustomLogoUrl)}',
+            welcomeLogoPosition: '${escapeForJs(cfg.welcomePage.welcomeLogoPosition)}',
+            welcomeLogoSize: ${cfg.welcomePage.welcomeLogoSize},
+            welcomeLogoAnimation: '${escapeForJs(cfg.welcomePage.welcomeLogoAnimation)}',
+            welcomeButtonAnimation: '${escapeForJs(cfg.welcomePage.welcomeButtonAnimation)}',
+            welcomeBackgroundColor: '${escapeForJs(cfg.welcomePage.welcomeBackgroundColor)}'
         }
     };
 </script>

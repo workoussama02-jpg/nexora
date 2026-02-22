@@ -16,7 +16,7 @@ export default function TextareaField({ label, value, onChange, placeholder, max
   const id = useId();
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-200">{label}</label>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">{label}</label>
       <textarea
         id={id}
         value={value}
@@ -24,9 +24,9 @@ export default function TextareaField({ label, value, onChange, placeholder, max
         placeholder={placeholder}
         maxLength={maxLength}
         rows={rows}
-        className="w-full rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none transition focus:border-brand-primary resize-none"
+        className="w-full rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary resize-none"
       />
-      {helperText && <p className="mt-1 text-xs text-gray-500">{helperText}</p>}
+      {helperText && <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">{helperText}</p>}
     </div>
   );
 }

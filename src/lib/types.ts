@@ -3,6 +3,8 @@
 // --- Advanced config sub-types ---
 
 export type BubbleBorderRadius = 'circle' | 'rounded' | 'none';
+export type BubbleAnimation = 'none' | 'bounce' | 'float' | 'pulse' | 'shake' | 'wiggle';
+export type AnimationSpeed = 'slow' | 'normal' | 'fast';
 
 export interface BubbleConfig {
   borderRadiusStyle: BubbleBorderRadius;
@@ -16,6 +18,9 @@ export interface BubbleConfig {
   bottomPosition: number;
   autoOpen: boolean;
   openDelay: number;
+  animation: BubbleAnimation;
+  animationSpeed: AnimationSpeed;
+  animateOnlyOnLoad: boolean;
 }
 
 export interface TooltipConfig {
@@ -28,6 +33,13 @@ export interface TooltipConfig {
 }
 
 export type WindowBorderRadius = 'rounded' | 'none';
+export type TimestampFormat = '12-hour' | '24-hour' | 'relative' | 'full';
+export type SendButtonIcon = 'arrow-up' | 'paper-plane' | 'send';
+
+export interface SocialLink {
+  platform: string;
+  url: string;
+}
 
 export interface WindowConfig {
   borderRadiusStyle: WindowBorderRadius;
@@ -48,6 +60,25 @@ export interface WindowConfig {
   messageBorderRadius: number;
   renderHtml: boolean;
   clearOnReload: boolean;
+  showBackToWelcome: boolean;
+  showRefreshButton: boolean;
+  showSendButton: boolean;
+  sendButtonIcon: SendButtonIcon;
+  showTimestamps: boolean;
+  timestampFormat: TimestampFormat;
+  timestampColor: string;
+  timestampFontSize: number;
+  showSocialIcons: boolean;
+  socialLinks: SocialLink[];
+  socialIconSize: number;
+  socialIconColor: string;
+  shadowEnabled: boolean;
+  shadowColor1: string;
+  shadowColor2: string;
+  shadowBlur: number;
+  shadowSpread: number;
+  shadowAnimate: boolean;
+  shadowAnimationSpeed: number;
 }
 
 export interface BotMessageConfig {
@@ -56,6 +87,8 @@ export interface BotMessageConfig {
   showAvatar: boolean;
   avatarUrl: string;
   showCopyIcon: boolean;
+  showTypingIndicator: boolean;
+  typingIndicatorColor: string;
 }
 
 export interface UserMessageConfig {
@@ -75,9 +108,11 @@ export interface InputFieldConfig {
   maxCharacters: number;
   maxCharsWarning: string;
   autoFocus: boolean;
+  showEmojiPicker: boolean;
 }
 
 export type FooterMode = 'content' | 'html';
+export type FooterLogoPosition = 'left' | 'right' | 'both';
 
 export interface FooterConfig {
   mode: FooterMode;
@@ -86,10 +121,68 @@ export interface FooterConfig {
   companyLink: string;
   textColor: string;
   customHtml: string;
+  showLogo: boolean;
+  logoSource: 'brand' | 'custom';
+  customLogoUrl: string;
+  logoPosition: FooterLogoPosition;
+  logoSize: number;
+}
+
+export type WelcomeLogoPosition = 'top-center' | 'top-left' | 'top-right' | 'above-text' | 'below-text';
+export type WelcomeAnimation = 'none' | 'bounce' | 'float' | 'pulse' | 'spin' | 'glow';
+
+export interface WelcomePageConfig {
+  welcomeButtonText: string;
+  showWelcomeLogo: boolean;
+  welcomeLogoSource: 'brand' | 'custom';
+  welcomeCustomLogoUrl: string;
+  welcomeLogoPosition: WelcomeLogoPosition;
+  welcomeLogoSize: number;
+  welcomeLogoAnimation: WelcomeAnimation;
+  welcomeButtonAnimation: WelcomeAnimation;
+  welcomeBackgroundColor: string;
+}
+
+export interface ColorTransitionConfig {
+  headerTransition: boolean;
+  headerColor1: string;
+  headerColor2: string;
+  toggleTransition: boolean;
+  toggleColor1: string;
+  toggleColor2: string;
+  userMessageTransition: boolean;
+  userMessageColor1: string;
+  userMessageColor2: string;
+  botMessageTransition: boolean;
+  botMessageColor1: string;
+  botMessageColor2: string;
+  transitionSpeed: number;
+}
+
+export interface FallingEffectConfig {
+  effectSource: 'brand' | 'custom' | 'emoji';
+  customImageUrl: string;
+  emoji: string;
+  particleCount: number;
+  fallSpeed: 'slow' | 'medium' | 'fast';
+  particleSize: number;
+  showOnDesktop: boolean;
+  showOnMobile: boolean;
 }
 
 export interface AdvancedConfig {
   customCss: string;
+  enableLanguageSelector: boolean;
+  availableLanguages: string[];
+  defaultLanguage: string;
+  enableCustomCursor: boolean;
+  cursorType: 'preset' | 'custom';
+  presetCursor: string;
+  customCursorUrl: string;
+  enableColorTransitions: boolean;
+  colorTransitions: ColorTransitionConfig;
+  enableFallingEffect: boolean;
+  fallingEffect: FallingEffectConfig;
 }
 
 /** Full advanced config stored in the JSONB `config` column */
@@ -102,6 +195,7 @@ export interface WidgetAdvancedConfig {
   inputField: InputFieldConfig;
   footer: FooterConfig;
   advanced: AdvancedConfig;
+  welcomePage: WelcomePageConfig;
 }
 
 // --- Base types ---

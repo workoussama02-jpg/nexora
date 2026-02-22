@@ -68,10 +68,10 @@ export default function SignupPage() {
             Nexora
           </Link>
           <h1 className="mt-6 text-2xl font-bold">Create your account</h1>
-          <p className="mt-2 text-sm text-gray-400">Start building your chat widget in minutes.</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Start building your chat widget in minutes.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-white/10 bg-white/5 p-8">
+        <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-8">
           <Input
             label="Email"
             type="email"
@@ -100,7 +100,7 @@ export default function SignupPage() {
           </Button>
         </form>
 
-        <p className="text-center text-sm text-gray-400">
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Already have an account?{' '}
           <Link href="/login" className="font-medium text-brand-primary hover:underline">
             Log in

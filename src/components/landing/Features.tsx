@@ -39,17 +39,17 @@ export default function Features() {
     <section className="px-4 py-24">
       <div className="mx-auto max-w-5xl text-center">
         <h2 className="text-3xl font-bold sm:text-4xl">Everything You Need</h2>
-        <p className="mt-3 text-gray-400">A complete toolkit for creating beautiful chat widgets.</p>
+        <p className="mt-3 text-gray-500 dark:text-gray-400">A complete toolkit for creating beautiful chat widgets.</p>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="rounded-2xl border border-white/10 bg-white/5 p-6 text-left transition-colors hover:border-brand-primary/30"
+              className="rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-6 text-left transition-colors hover:border-brand-primary/30"
             >
               <feature.icon className="h-8 w-8 text-brand-primary" />
               <h3 className="mt-4 text-base font-semibold">{feature.title}</h3>
-              <p className="mt-2 text-sm text-gray-400">{feature.description}</p>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{feature.description}</p>
             </div>
           ))}
         </div>

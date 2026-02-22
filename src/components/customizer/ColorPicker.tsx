@@ -34,7 +34,7 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
 
   return (
     <div>
-      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-200">
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-200">
         {label}
       </label>
       <div className="flex items-center gap-2">
@@ -42,7 +42,7 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-9 cursor-pointer rounded border border-white/20 bg-transparent p-0.5"
+          className="h-9 w-9 cursor-pointer rounded border border-gray-200 dark:border-white/20 bg-transparent p-0.5"
           aria-label={`${label} color swatch`}
         />
         <input
@@ -52,7 +52,7 @@ export default function ColorPicker({ label, value, onChange }: ColorPickerProps
           onChange={(e) => handleTextChange(e.target.value)}
           onBlur={handleBlur}
           maxLength={7}
-          className="w-28 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-sm text-white placeholder-gray-500 outline-none transition focus:border-brand-primary"
+          className="w-28 rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary"
           placeholder="#854fff"
         />
       </div>
