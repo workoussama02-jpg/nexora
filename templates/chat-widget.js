@@ -252,7 +252,17 @@
         var ct = config.advanced.colorTransitions;
         var ctSpeed = ct.transitionSpeed + 's';
         if (ct.headerTransition) ctCSS += '@keyframes ncw-ct-header{0%,100%{background:' + (ct.headerColor1||config.style.primaryColor) + '}50%{background:' + (ct.headerColor2||config.style.secondaryColor) + '}}\n.ncw-header{animation:ncw-ct-header ' + ctSpeed + ' ease-in-out infinite}\n';
-        if (ct.toggleTransition) ctCSS += '@keyframes ncw-ct-toggle{0%,100%{background:' + (ct.toggleColor1||config.style.primaryColor) + '}50%{background:' + (ct.toggleColor2||config.style.secondaryColor) + '}}\n.ncw-toggle{animation:ncw-ct-toggle ' + ctSpeed + ' ease-in-out infinite}\n';
+        if (ct.toggleTransition) {
+            ctCSS += '@keyframes ncw-ct-toggle{0%,100%{background:' + (ct.toggleColor1||config.style.primaryColor) + '}50%{background:' + (ct.toggleColor2||config.style.secondaryColor) + '}}\n';
+            if (config.bubble.animation !== 'none') {
+                var bsMap = { slow: '2s', normal: '1.2s', fast: '0.6s' };
+                var bDur = bsMap[config.bubble.animationSpeed] || '1.2s';
+                var bIter = config.bubble.animateOnlyOnLoad ? '1' : 'infinite';
+                ctCSS += '.ncw-toggle,.ncw-toggle.ncw-animated{animation:ncw-ct-toggle ' + ctSpeed + ' ease-in-out infinite,ncw-anim-' + config.bubble.animation + ' ' + bDur + ' ease-in-out ' + bIter + '}\n';
+            } else {
+                ctCSS += '.ncw-toggle{animation:ncw-ct-toggle ' + ctSpeed + ' ease-in-out infinite}\n';
+            }
+        }
         if (ct.userMessageTransition) ctCSS += '@keyframes ncw-ct-umsg{0%,100%{background:' + (ct.userMessageColor1||config.style.primaryColor) + '}50%{background:' + (ct.userMessageColor2||config.style.secondaryColor) + '}}\n.ncw-msg.ncw-user{animation:ncw-ct-umsg ' + ctSpeed + ' ease-in-out infinite}\n';
         if (ct.botMessageTransition) ctCSS += '@keyframes ncw-ct-bmsg{0%,100%{background:' + (ct.botMessageColor1||config.botMessage.backgroundColor) + '}50%{background:' + (ct.botMessageColor2||config.style.secondaryColor) + '}}\n.ncw-msg.ncw-bot{animation:ncw-ct-bmsg ' + ctSpeed + ' ease-in-out infinite}\n';
     }

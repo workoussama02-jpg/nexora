@@ -232,6 +232,76 @@ function buildPreviewHtml(config: PreviewConfig): string {
     }
   }
 
+  // Color transitions CSS (using preview class names)
+  let colorTransitionCss = '';
+  if (adv.enableColorTransitions) {
+    const ct = adv.colorTransitions;
+    const ctSpd = `${ct.transitionSpeed}s`;
+    const cp = escapeHtml(config.primaryColor);
+    const cs = escapeHtml(config.secondaryColor);
+    if (ct.headerTransition) {
+      colorTransitionCss += `@keyframes ct-header{0%,100%{background:${ct.headerColor1 || cp}}50%{background:${ct.headerColor2 || cs}}}\n.brand-header{animation:ct-header ${ctSpd} ease-in-out infinite}\n`;
+    }
+    if (ct.toggleTransition) {
+      colorTransitionCss += `@keyframes ct-toggle{0%,100%{background:${ct.toggleColor1 || cp}}50%{background:${ct.toggleColor2 || cs}}}\n`;
+      if (bubble.animation !== 'none') {
+        const bSpeedMap: Record<string, string> = { slow: '2s', normal: '1s', fast: '0.5s' };
+        const bDur = bSpeedMap[bubble.animationSpeed] || '1s';
+        const bIter = bubble.animateOnlyOnLoad ? '1' : 'infinite';
+        colorTransitionCss += `.toggle-btn{animation:ct-toggle ${ctSpd} ease-in-out infinite,bubbleAnim ${bDur} ease-in-out ${bIter}}\n`;
+      } else {
+        colorTransitionCss += `.toggle-btn{animation:ct-toggle ${ctSpd} ease-in-out infinite}\n`;
+      }
+    }
+    if (ct.userMessageTransition) {
+      colorTransitionCss += `@keyframes ct-umsg{0%,100%{background:${ct.userMessageColor1 || cp}}50%{background:${ct.userMessageColor2 || cs}}}\n.msg-bubble.user{animation:ct-umsg ${ctSpd} ease-in-out infinite}\n`;
+    }
+    if (ct.botMessageTransition) {
+      colorTransitionCss += `@keyframes ct-bmsg{0%,100%{background:${ct.botMessageColor1 || escapeHtml(bot.backgroundColor)}}50%{background:${ct.botMessageColor2 || cs}}}\n.msg-bubble.bot{animation:ct-bmsg ${ctSpd} ease-in-out infinite}\n`;
+    }
+  }
+
+  // Falling effect (pre-computed for template injection)
+  const fallingEffectCss = adv.enableFallingEffect
+    ? `.falling-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:5}.falling-particle{position:absolute;animation:particle-fall linear forwards}@keyframes particle-fall{0%{top:-30px;opacity:1}100%{top:100%;opacity:0}}`
+    : '';
+  const fallingHtml = adv.enableFallingEffect ? '<div class="falling-overlay" id="fallingOverlay"></div>' : '';
+  const fallingEffectScript = adv.enableFallingEffect ? `
+  (function() {
+    var fallingOverlay = document.getElementById('fallingOverlay');
+    if (!fallingOverlay) return;
+    var fe = ${JSON.stringify(adv.fallingEffect)};
+    var logoUrl = ${JSON.stringify(logoSrc)};
+    function createFallingParticle() {
+      var p = document.createElement('div');
+      p.className = 'falling-particle';
+      p.style.left = (Math.random() * 100) + '%';
+      var speedMap = { slow: 6, medium: 4, fast: 2 };
+      var dur = (speedMap[fe.fallSpeed] || 4) + (Math.random() * 2);
+      p.style.animationDuration = dur + 's';
+      p.style.width = fe.particleSize + 'px';
+      p.style.height = fe.particleSize + 'px';
+      if (fe.effectSource === 'emoji') {
+        p.textContent = fe.emoji || '\u2728';
+        p.style.fontSize = fe.particleSize + 'px';
+        p.style.lineHeight = '1';
+      } else {
+        var src = fe.effectSource === 'custom' ? fe.customImageUrl : logoUrl;
+        if (src) {
+          p.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:contain" />';
+        } else {
+          p.textContent = '\u2728';
+          p.style.fontSize = fe.particleSize + 'px';
+        }
+      }
+      p.addEventListener('animationend', function() { p.remove(); });
+      fallingOverlay.appendChild(p);
+    }
+    setInterval(function() {
+      if (fallingOverlay.children.length < fe.particleCount) createFallingParticle();
+    }, 300);
+  })();` : '';
+
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -273,6 +343,8 @@ function buildPreviewHtml(config: PreviewConfig): string {
   ${shadowAnimCss}
   ${welcomeAnimCss}
   ${cursorCss}
+  ${colorTransitionCss}
+  ${fallingEffectCss}
 
   .tooltip {
     position: absolute;
@@ -493,6 +565,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     </div>
 
     ${footerContent}
+    ${fallingHtml}
   </div>
 </div>
 
@@ -525,6 +598,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     c.classList.remove('mode-chat');
     chatMode = 'welcome';
   }
+  ${fallingEffectScript}
 </script>
 </body>
 </html>`;
