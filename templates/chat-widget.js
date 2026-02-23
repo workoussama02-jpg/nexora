@@ -142,11 +142,15 @@
             fallingEffect: {
                 effectSource: 'brand', customImageUrl: '', emoji: '✨',
                 particleCount: 15, fallSpeed: 'medium', particleSize: 20,
-                showOnDesktop: true, showOnMobile: false
+                showOnDesktop: true, showOnMobile: false,
+                particleOpacity: 1
             }
         },
         welcomePage: {
             welcomeButtonText: 'Send us a message',
+            showWelcomeButton: true,
+            enableLanguageButtons: false,
+            languageButtons: [],
             showWelcomeLogo: true,
             welcomeLogoSource: 'brand',
             welcomeCustomLogoUrl: '',
@@ -341,7 +345,7 @@
 .ncw-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:' + (config.welcomePage.welcomeBackgroundColor || config.window.backgroundColor) + '}\
 .ncw-welcome-logo{object-fit:contain;margin-bottom:12px}\
 .ncw-welcome-text{font-size:22px;font-weight:600;color:' + config.style.fontColor + ';margin-bottom:20px;line-height:1.3}\
-.ncw-start-btn{display:flex;align-items:center;gap:8px;padding:14px 24px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--chat-primary),var(--chat-secondary));color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:opacity .2s}\
+.ncw-start-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--chat-primary),var(--chat-secondary));color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:opacity .2s;width:100%}\
 .ncw-start-btn:hover{opacity:.9}\
 .ncw-response-time{font-size:13px;color:' + config.style.fontColor + ';opacity:.5;margin-top:8px}\
 .ncw-prompts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}\
@@ -524,7 +528,15 @@
     if (wLP === 'above-text') welcomeHtml += welcomeLogoHtml;
     welcomeHtml += '<div class="ncw-welcome-text">' + escHtml(welcomeMsg) + '</div>';
     if (wLP === 'below-text') welcomeHtml += welcomeLogoHtml;
-    welcomeHtml += '<button class="ncw-start-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="ncw-start-btn-text">' + escHtml(config.welcomePage.welcomeButtonText || t('sendBtn')) + '</span></button>';
+    if (config.welcomePage.showWelcomeButton !== false) {
+        welcomeHtml += '<button class="ncw-start-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="ncw-start-btn-text">' + escHtml(config.welcomePage.welcomeButtonText || t('sendBtn')) + '</span></button>';
+    }
+    if (config.welcomePage.enableLanguageButtons && config.welcomePage.languageButtons && config.welcomePage.languageButtons.length > 0) {
+        for (var lbi = 0; lbi < config.welcomePage.languageButtons.length; lbi++) {
+            var lb = config.welcomePage.languageButtons[lbi];
+            welcomeHtml += '<button class="ncw-start-btn ncw-lang-welcome-btn" data-lang-msg="' + escAttr(lb.message) + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' + escHtml(lb.label) + '</button>';
+        }
+    }
     if (config.branding.responseTimeText) {
         welcomeHtml += '<div class="ncw-response-time">' + escHtml(config.branding.responseTimeText) + '</div>';
     }
@@ -678,6 +690,15 @@
     var startBtn = container.querySelector('.ncw-start-btn');
     if (startBtn) startBtn.addEventListener('click', function() { startNewConversation(); });
 
+    // Language welcome buttons
+    var langWelcomeBtns = container.querySelectorAll('.ncw-lang-welcome-btn');
+    for (var lwi = 0; lwi < langWelcomeBtns.length; lwi++) {
+        langWelcomeBtns[lwi].addEventListener('click', function() {
+            var msg = this.getAttribute('data-lang-msg');
+            startNewConversation(msg || undefined);
+        });
+    }
+
     // Starter prompt chips
     var promptChips = container.querySelectorAll('.ncw-prompt-chip');
     for (var p = 0; p < promptChips.length; p++) {
@@ -814,6 +835,7 @@
                 p.style.animationDuration = duration + 's';
                 p.style.width = fe.particleSize + 'px';
                 p.style.height = fe.particleSize + 'px';
+                p.style.opacity = fe.particleOpacity != null ? fe.particleOpacity : 1;
                 if (fe.effectSource === 'emoji') {
                     p.textContent = fe.emoji || '✨';
                     p.style.fontSize = fe.particleSize + 'px';

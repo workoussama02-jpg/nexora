@@ -1,7 +1,7 @@
 // Welcome Page tab — configure welcome screen logo, button text, animations
 'use client';
 
-import type { WelcomePageConfig, WelcomeLogoPosition, WelcomeAnimation } from '@/lib/types';
+import type { WelcomePageConfig, WelcomeLogoPosition, WelcomeAnimation, LanguageButton } from '@/lib/types';
 import ColorPicker from '../ColorPicker';
 import CollapsibleSection from '../CollapsibleSection';
 import Toggle from '@/components/ui/Toggle';
@@ -37,33 +37,110 @@ const ANIMATION_OPTIONS = [
 ];
 
 export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps) {
+  function addLanguageButton() {
+    const updated: LanguageButton[] = [...config.languageButtons, { label: 'English', message: 'Language: English' }];
+    onChange('languageButtons', updated);
+  }
+
+  function removeLanguageButton(index: number) {
+    const updated = config.languageButtons.filter((_, i) => i !== index);
+    onChange('languageButtons', updated);
+  }
+
+  function updateLanguageButton(index: number, field: keyof LanguageButton, value: string) {
+    const updated = config.languageButtons.map((btn, i) =>
+      i === index ? { ...btn, [field]: value } : btn
+    );
+    onChange('languageButtons', updated);
+  }
+
   return (
     <div className="space-y-4">
-      {/* Button Text */}
+      {/* Welcome Button */}
       <CollapsibleSection title="Welcome Button">
-        <Input
-          label="Button Text"
-          placeholder="Send us a message"
-          value={config.welcomeButtonText}
-          onChange={(e) => onChange('welcomeButtonText', e.target.value)}
-          helperText="Text displayed on the welcome screen button."
+        <Toggle
+          label="Show Welcome Button"
+          checked={config.showWelcomeButton}
+          onChange={(v) => onChange('showWelcomeButton', v)}
+          helperText='Toggle the main "Send us a message" button on the welcome screen.'
         />
-        <RadioGroup
-          label="Button Animation"
-          value={config.welcomeButtonAnimation}
-          onChange={(v) => onChange('welcomeButtonAnimation', v as WelcomeAnimation)}
-          options={ANIMATION_OPTIONS}
+        {config.showWelcomeButton && (
+          <>
+            <Input
+              label="Button Text"
+              placeholder="Send us a message"
+              value={config.welcomeButtonText}
+              onChange={(e) => onChange('welcomeButtonText', e.target.value)}
+              helperText="Text displayed on the welcome screen button."
+            />
+            <RadioGroup
+              label="Button Animation"
+              value={config.welcomeButtonAnimation}
+              onChange={(v) => onChange('welcomeButtonAnimation', v as WelcomeAnimation)}
+              options={ANIMATION_OPTIONS}
+            />
+            {config.welcomeButtonAnimation !== 'none' && (
+              <Slider
+                label="Animation Speed"
+                value={config.welcomeButtonAnimationSpeed}
+                onChange={(v) => onChange('welcomeButtonAnimationSpeed', v)}
+                min={0}
+                max={10}
+                step={0.1}
+                unit="s"
+              />
+            )}
+          </>
+        )}
+      </CollapsibleSection>
+
+      {/* Language Buttons */}
+      <CollapsibleSection title="Language Buttons">
+        <Toggle
+          label="Enable Language Buttons"
+          checked={config.enableLanguageButtons}
+          onChange={(v) => onChange('enableLanguageButtons', v)}
+          helperText="Add language buttons below the welcome button. Each button immediately starts the chat with its predefined message."
         />
-        {config.welcomeButtonAnimation !== 'none' && (
-          <Slider
-            label="Animation Speed"
-            value={config.welcomeButtonAnimationSpeed}
-            onChange={(v) => onChange('welcomeButtonAnimationSpeed', v)}
-            min={0}
-            max={10}
-            step={0.1}
-            unit="s"
-          />
+        {config.enableLanguageButtons && (
+          <div className="space-y-3">
+            {config.languageButtons.map((btn, index) => (
+              <div key={index} className="flex gap-2 items-start p-3 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+                <div className="flex-1 space-y-2">
+                  <Input
+                    label="Button Label"
+                    placeholder="English"
+                    value={btn.label}
+                    onChange={(e) => updateLanguageButton(index, 'label', e.target.value)}
+                  />
+                  <Input
+                    label="Message Sent"
+                    placeholder="Language: English"
+                    value={btn.message}
+                    onChange={(e) => updateLanguageButton(index, 'message', e.target.value)}
+                    helperText="Text sent to the bot when this button is clicked."
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeLanguageButton(index)}
+                  className="mt-6 p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition"
+                  title="Remove"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addLanguageButton}
+              className="w-full py-2 px-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-white/20 text-sm text-gray-500 dark:text-gray-400 hover:border-brand-primary hover:text-brand-primary transition"
+            >
+              + Add Language Button
+            </button>
+          </div>
         )}
       </CollapsibleSection>
 

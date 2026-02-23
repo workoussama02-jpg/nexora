@@ -59,7 +59,7 @@ function mergeConfig(saved: Partial<WidgetAdvancedConfig> | undefined): WidgetAd
     inputField: { ...d.inputField, ...saved.inputField },
     footer: { ...d.footer, ...saved.footer },
     advanced: { ...d.advanced, ...saved.advanced, colorTransitions: { ...d.advanced.colorTransitions, ...saved.advanced?.colorTransitions }, fallingEffect: { ...d.advanced.fallingEffect, ...saved.advanced?.fallingEffect } },
-    welcomePage: { ...d.welcomePage, ...saved.welcomePage },
+    welcomePage: { ...d.welcomePage, ...saved.welcomePage, languageButtons: saved.welcomePage?.languageButtons ?? d.welcomePage.languageButtons },
   };
 }
 
@@ -364,100 +364,90 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
 
   return (
     <>
-      <div className="grid gap-8 md:grid-cols-[2fr_3fr]">
-        {/* Left: Form */}
-        <div className="space-y-8">
-          {/* Tabbed customization sections */}
-          <div>
-            {/* Tab bar */}
-            <div className="flex border-b border-gray-200 dark:border-white/10 mb-6 overflow-x-auto scrollbar-hide">
-              {TABS.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
-                    activeTab === tab
-                      ? 'border-brand-primary text-brand-primary'
-                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-
-            {/* Tab content */}
-            <div className="min-h-[200px]">
-              {activeTab === 'Widget Settings' && (
-                <WidgetSettingsTab
-                  name={form.name}
-                  webhookUrl={form.webhookUrl}
-                  webhookRoute={form.webhookRoute}
-                  logoUrl={form.logoUrl}
-                  companyName={form.companyName}
-                  welcomeText={form.welcomeText}
-                  responseTimeText={form.responseTimeText}
-                  errors={errors}
-                  onFieldChange={(field, value) => updateField(field as keyof FormState, value as never)}
-                />
-              )}
-              {activeTab === 'Bubble' && (
-                <BubbleTab
-                  config={config.bubble}
-                  position={form.position}
-                  onChange={updateBubble}
-                  onPositionChange={(v) => updateField('position', v)}
-                />
-              )}
-              {activeTab === 'Tooltip' && (
-                <TooltipTab config={config.tooltip} onChange={updateTooltip} />
-              )}
-              {activeTab === 'Window' && (
-                <WindowTab
-                  windowConfig={config.window}
-                  botMessage={config.botMessage}
-                  userMessage={config.userMessage}
-                  inputField={config.inputField}
-                  onWindowChange={updateWindow}
-                  onBotChange={updateBotMessage}
-                  onUserChange={updateUserMessage}
-                  onInputChange={updateInputField}
-                />
-              )}
-              {activeTab === 'Welcome Page' && (
-                <WelcomePageTab config={config.welcomePage} onChange={updateWelcomePage} />
-              )}
-              {activeTab === 'Footer' && (
-                <FooterTab config={config.footer} onChange={updateFooter} />
-              )}
-              {activeTab === 'Advanced' && (
-                <AdvancedTab config={config.advanced} onChange={updateAdvanced} />
-              )}
-            </div>
+      <div className="max-w-2xl">
+        {/* Tabbed customization sections */}
+        <div>
+          {/* Tab bar */}
+          <div className="flex border-b border-gray-200 dark:border-white/10 mb-6 overflow-x-auto scrollbar-hide">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`whitespace-nowrap px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
+                  activeTab === tab
+                    ? 'border-brand-primary text-brand-primary'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pb-8">
-            <Button variant="secondary" onClick={handleSave} loading={saving} disabled={downloading}>
-              Save Widget
-            </Button>
-            <Button onClick={handleDownload} loading={downloading} disabled={saving}>
-              Download Files
-            </Button>
+          {/* Tab content */}
+          <div className="min-h-[200px]">
+            {activeTab === 'Widget Settings' && (
+              <WidgetSettingsTab
+                name={form.name}
+                webhookUrl={form.webhookUrl}
+                webhookRoute={form.webhookRoute}
+                logoUrl={form.logoUrl}
+                companyName={form.companyName}
+                welcomeText={form.welcomeText}
+                responseTimeText={form.responseTimeText}
+                errors={errors}
+                onFieldChange={(field, value) => updateField(field as keyof FormState, value as never)}
+              />
+            )}
+            {activeTab === 'Bubble' && (
+              <BubbleTab
+                config={config.bubble}
+                position={form.position}
+                onChange={updateBubble}
+                onPositionChange={(v) => updateField('position', v)}
+              />
+            )}
+            {activeTab === 'Tooltip' && (
+              <TooltipTab config={config.tooltip} onChange={updateTooltip} />
+            )}
+            {activeTab === 'Window' && (
+              <WindowTab
+                windowConfig={config.window}
+                botMessage={config.botMessage}
+                userMessage={config.userMessage}
+                inputField={config.inputField}
+                onWindowChange={updateWindow}
+                onBotChange={updateBotMessage}
+                onUserChange={updateUserMessage}
+                onInputChange={updateInputField}
+              />
+            )}
+            {activeTab === 'Welcome Page' && (
+              <WelcomePageTab config={config.welcomePage} onChange={updateWelcomePage} />
+            )}
+            {activeTab === 'Footer' && (
+              <FooterTab config={config.footer} onChange={updateFooter} />
+            )}
+            {activeTab === 'Advanced' && (
+              <AdvancedTab config={config.advanced} onChange={updateAdvanced} />
+            )}
           </div>
         </div>
 
-        {/* Right: Live Preview */}
-        <div className="hidden md:block">
-          <PreviewPane config={previewConfig} />
+        {/* Action Buttons */}
+        <div className="flex gap-3 pb-8 mt-8">
+          <Button variant="secondary" onClick={handleSave} loading={saving} disabled={downloading}>
+            Save Widget
+          </Button>
+          <Button onClick={handleDownload} loading={downloading} disabled={saving}>
+            Download Files
+          </Button>
         </div>
       </div>
 
-      {/* Mobile preview below form */}
-      <div className="mt-8 md:hidden">
-        <PreviewPane config={previewConfig} />
-      </div>
+      {/* Floating widget preview */}
+      <PreviewPane config={previewConfig} />
 
       <DeployInstructions open={showInstructions} onClose={() => setShowInstructions(false)} />
     </>

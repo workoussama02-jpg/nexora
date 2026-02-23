@@ -263,7 +263,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
 
   // Falling effect (pre-computed for template injection)
   const fallingEffectCss = adv.enableFallingEffect
-    ? `.falling-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:5}.falling-particle{position:absolute;animation:particle-fall linear forwards}@keyframes particle-fall{0%{top:-30px;opacity:1}100%{top:100%;opacity:0}}`
+    ? `.falling-overlay{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden;z-index:5}.falling-particle{position:absolute;animation:particle-fall linear forwards}@keyframes particle-fall{0%{top:-30px;opacity:${adv.fallingEffect.particleOpacity ?? 1}}100%{top:100%;opacity:0}}`
     : '';
   const fallingHtml = adv.enableFallingEffect ? '<div class="falling-overlay" id="fallingOverlay"></div>' : '';
   const fallingEffectScript = adv.enableFallingEffect ? `
@@ -281,6 +281,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
       p.style.animationDuration = dur + 's';
       p.style.width = fe.particleSize + 'px';
       p.style.height = fe.particleSize + 'px';
+      p.style.opacity = fe.particleOpacity != null ? fe.particleOpacity : 1;
       if (fe.effectSource === 'emoji') {
         p.textContent = fe.emoji || '\u2728';
         p.style.fontSize = fe.particleSize + 'px';
@@ -302,26 +303,31 @@ function buildPreviewHtml(config: PreviewConfig): string {
     }, 300);
   })();` : '';
 
+  // Language buttons HTML
+  const langButtonsHtml = wp.enableLanguageButtons && wp.languageButtons && wp.languageButtons.length > 0
+    ? wp.languageButtons.map((btn) =>
+        `<button class="start-btn lang-btn" onclick="startChat('${escapeHtml(btn.message).replace(/'/g, '&#039;')}')">\n        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>\n        ${escapeHtml(btn.label)}\n      </button>`
+      ).join('\n      ')
+    : '';
+
   return `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; background: #f5f5f5; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; }
+  html, body { height: 100%; background: transparent !important; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; pointer-events: none; }
 
   .widget-root {
     --primary: ${escapeHtml(config.primaryColor)};
     --secondary: ${escapeHtml(config.secondaryColor)};
     --bg: ${escapeHtml(config.backgroundColor)};
     --font: ${escapeHtml(config.fontColor)};
-    position: relative;
-    width: 100%;
-    height: 100%;
+    pointer-events: none;
   }
 
   .toggle-btn {
-    position: absolute;
+    position: fixed;
     bottom: ${bubble.bottomPosition}px;
     ${positionSide}: ${positionPx}px;
     width: ${bubble.size}px;
@@ -337,6 +343,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     transition: transform 0.2s;
     z-index: 10;
     overflow: hidden;
+    pointer-events: auto;
   }
   .toggle-btn:hover { transform: scale(1.05); }
   ${bubbleAnimCss}
@@ -347,7 +354,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
   ${fallingEffectCss}
 
   .tooltip {
-    position: absolute;
+    position: fixed;
     bottom: ${bubble.bottomPosition + bubble.size + 10}px;
     ${positionSide}: ${positionPx}px;
     padding: 8px 14px;
@@ -360,6 +367,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     display: flex;
     align-items: center;
     gap: 8px;
+    pointer-events: auto;
   }
   .tooltip-close {
     font-size: 16px;
@@ -370,11 +378,11 @@ function buildPreviewHtml(config: PreviewConfig): string {
   .tooltip-close:hover { opacity: 1; }
 
   .chat-container {
-    position: absolute;
+    position: fixed;
     bottom: ${bubble.bottomPosition + bubble.size + 12}px;
     ${positionSide}: ${positionPx}px;
-    width: min(${win.width}px, calc(100% - 32px));
-    max-height: calc(100% - ${bubble.bottomPosition + bubble.size + 24}px);
+    width: min(${win.width}px, calc(100vw - 32px));
+    max-height: calc(100vh - ${bubble.bottomPosition + bubble.size + 24}px);
     height: ${win.height}px;
     background: ${escapeHtml(win.backgroundColor)};
     border-radius: ${windowRadius};
@@ -386,6 +394,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     z-index: 10;
     font-size: ${win.fontSize}px;
     ${shadowStyle}
+    pointer-events: auto;
   }
   .chat-container.open { display: flex; }
   .chat-container.mode-chat .welcome-screen { display: none; }
@@ -424,7 +433,8 @@ function buildPreviewHtml(config: PreviewConfig): string {
   .start-btn {
     display: flex; align-items: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px;
     background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; font-size: 14px; font-weight: 500;
-    cursor: pointer; transition: opacity 0.2s;
+    cursor: pointer; transition: opacity 0.2s; margin-bottom: 8px; width: 100%;
+    justify-content: center;
   }
   .start-btn:hover { opacity: 0.9; }
   .response-time { font-size: 12px; color: var(--font); opacity: 0.5; margin-top: 12px; }
@@ -506,7 +516,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     ${bubbleIconHtml}
   </button>
 
-  <div class="chat-container open" id="chatContainer">
+  <div class="chat-container" id="chatContainer">
     <div class="brand-header">
       ${titleAvatarHtml}
       ${titleAvatarPlaceholder}
@@ -523,10 +533,11 @@ function buildPreviewHtml(config: PreviewConfig): string {
       ${wp.welcomeLogoPosition === 'below-text' ? '' : welcomeLogoHtml}
       <div class="welcome-text">${config.welcomeText ? escapeHtml(win.welcomeMessage || config.welcomeText) : '<span class="placeholder">Welcome! How can we help?</span>'}</div>
       ${wp.welcomeLogoPosition === 'below-text' ? welcomeLogoHtml : ''}
-      <button class="start-btn" onclick="startChat()">
+      ${wp.showWelcomeButton !== false ? `<button class="start-btn" onclick="startChat()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         ${escapeHtml(wp.welcomeButtonText || 'Send us a message')}
-      </button>
+      </button>` : ''}
+      ${langButtonsHtml}
       ${config.responseTimeText ? `<div class="response-time">${escapeHtml(config.responseTimeText)}</div>` : ''}
       ${promptsHtml ? `<div class="starter-prompts">${promptsHtml}</div>` : ''}
     </div>
@@ -570,7 +581,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
 </div>
 
 <script>
-  var chatOpen = true;
+  var chatOpen = false;
   var chatMode = 'welcome';
   function toggleChat() {
     var c = document.getElementById('chatContainer');
@@ -583,8 +594,12 @@ function buildPreviewHtml(config: PreviewConfig): string {
     var tt = document.querySelector('.tooltip');
     if (tt && chatOpen) tt.style.display = 'none';
   }
-  function startChat() {
+  function startChat(initialMessage) {
     var c = document.getElementById('chatContainer');
+    if (!chatOpen) {
+      chatOpen = true;
+      c.classList.add('open');
+    }
     c.classList.add('mode-chat');
     chatMode = 'chat';
   }
@@ -617,20 +632,15 @@ export default function PreviewPane({ config }: PreviewPaneProps) {
     return () => URL.revokeObjectURL(url);
   }, [config]);
 
+  const side = config.position === 'left' ? 'left-0' : 'right-0';
+
   return (
-    <div className="sticky top-24">
-      {/* Preview area — no browser frame */}
-      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 bg-[#f5f5f5] dark:bg-[#1a1a2e]">
-        <iframe
-          ref={iframeRef}
-          title="Widget Preview"
-          className="h-[520px] w-full"
-          sandbox="allow-scripts"
-        />
-      </div>
-      <p className="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
-        Click the chat bubble to open/close &bull; Click &ldquo;Send us a message&rdquo; for chat view
-      </p>
-    </div>
+    <iframe
+      ref={iframeRef}
+      title="Widget Preview"
+      className={`fixed bottom-0 ${side} border-0 z-50`}
+      style={{ width: '520px', height: '740px', background: 'transparent' }}
+      sandbox="allow-scripts"
+    />
   );
 }

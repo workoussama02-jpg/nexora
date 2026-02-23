@@ -131,8 +131,16 @@ export interface FooterConfig {
 export type WelcomeLogoPosition = 'top-center' | 'top-left' | 'top-right' | 'above-text' | 'below-text';
 export type WelcomeAnimation = 'none' | 'bounce' | 'float' | 'pulse' | 'spin' | 'glow';
 
+export interface LanguageButton {
+  label: string;
+  message: string;
+}
+
 export interface WelcomePageConfig {
   welcomeButtonText: string;
+  showWelcomeButton: boolean;
+  enableLanguageButtons: boolean;
+  languageButtons: LanguageButton[];
   showWelcomeLogo: boolean;
   welcomeLogoSource: 'brand' | 'custom';
   welcomeCustomLogoUrl: string;
@@ -167,6 +175,7 @@ export interface FallingEffectConfig {
   particleCount: number;
   fallSpeed: 'slow' | 'medium' | 'fast';
   particleSize: number;
+  particleOpacity: number;
   showOnDesktop: boolean;
   showOnMobile: boolean;
 }

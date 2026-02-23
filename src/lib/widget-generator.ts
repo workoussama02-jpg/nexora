@@ -56,6 +56,11 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
     .map((l) => `'${escapeForJs(l)}'`)
     .join(', ');
 
+  // Build language buttons array string
+  const languageButtonsStr = (cfg.welcomePage.languageButtons ?? [])
+    .map((b) => `{ label: '${escapeForJs(b.label)}', message: '${escapeForJs(b.message)}' }`)
+    .join(', ');
+
   // Build the HTML embed snippet with full ChatWidgetConfig
   const htmlContent = `<!-- Nexora Chat Widget -->
 <script>
@@ -217,12 +222,16 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
                 particleCount: ${cfg.advanced.fallingEffect.particleCount},
                 fallSpeed: '${escapeForJs(cfg.advanced.fallingEffect.fallSpeed)}',
                 particleSize: ${cfg.advanced.fallingEffect.particleSize},
+                particleOpacity: ${cfg.advanced.fallingEffect.particleOpacity ?? 1},
                 showOnDesktop: ${cfg.advanced.fallingEffect.showOnDesktop},
                 showOnMobile: ${cfg.advanced.fallingEffect.showOnMobile}
             }
         },
         welcomePage: {
             welcomeButtonText: '${escapeForJs(cfg.welcomePage.welcomeButtonText)}',
+            showWelcomeButton: ${cfg.welcomePage.showWelcomeButton ?? true},
+            enableLanguageButtons: ${cfg.welcomePage.enableLanguageButtons ?? false},
+            languageButtons: [${languageButtonsStr}],
             showWelcomeLogo: ${cfg.welcomePage.showWelcomeLogo},
             welcomeLogoSource: '${escapeForJs(cfg.welcomePage.welcomeLogoSource)}',
             welcomeCustomLogoUrl: '${escapeForJs(cfg.welcomePage.welcomeCustomLogoUrl)}',

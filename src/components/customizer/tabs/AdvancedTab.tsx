@@ -1,4 +1,4 @@
-// Advanced tab — custom CSS, language selector, custom cursor, color transitions, falling effect
+// Advanced tab — custom CSS, custom cursor, color transitions, falling effect
 'use client';
 
 import type { AdvancedConfig, ColorTransitionConfig, FallingEffectConfig } from '@/lib/types';
@@ -41,12 +41,6 @@ const EFFECT_SOURCE_OPTIONS = [
   { label: 'Emoji', value: 'emoji' },
 ];
 
-const AVAILABLE_LANGUAGES = [
-  { label: 'English', value: 'en' },
-  { label: 'French', value: 'fr' },
-  { label: 'Arabic', value: 'ar' },
-];
-
 export default function AdvancedTab({ config, onChange }: AdvancedTabProps) {
   function updateColorTransitions<K extends keyof ColorTransitionConfig>(key: K, value: ColorTransitionConfig[K]) {
     onChange('colorTransitions', { ...config.colorTransitions, [key]: value });
@@ -54,19 +48,6 @@ export default function AdvancedTab({ config, onChange }: AdvancedTabProps) {
 
   function updateFallingEffect<K extends keyof FallingEffectConfig>(key: K, value: FallingEffectConfig[K]) {
     onChange('fallingEffect', { ...config.fallingEffect, [key]: value });
-  }
-
-  function toggleLanguage(lang: string) {
-    const current = config.availableLanguages;
-    if (current.includes(lang)) {
-      if (current.length > 1) {
-        const updated = current.filter((l) => l !== lang);
-        onChange('availableLanguages', updated);
-        if (config.defaultLanguage === lang) onChange('defaultLanguage', updated[0]);
-      }
-    } else {
-      onChange('availableLanguages', [...current, lang]);
-    }
   }
 
   return (
@@ -81,45 +62,6 @@ export default function AdvancedTab({ config, onChange }: AdvancedTabProps) {
           rows={8}
           helperText="Inject custom CSS into the widget. Advanced users only — may break layout."
         />
-      </CollapsibleSection>
-
-      {/* Language Selector */}
-      <CollapsibleSection title="Language Selector">
-        <Toggle
-          label="Enable Language Selector"
-          checked={config.enableLanguageSelector}
-          onChange={(v) => onChange('enableLanguageSelector', v)}
-          helperText="Shows language switcher buttons in the chat header."
-        />
-        {config.enableLanguageSelector && (
-          <>
-            <div>
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">Available Languages</span>
-              <div className="flex flex-wrap gap-2">
-                {AVAILABLE_LANGUAGES.map((lang) => (
-                  <button
-                    key={lang.value}
-                    type="button"
-                    onClick={() => toggleLanguage(lang.value)}
-                    className={`px-3 py-1.5 rounded-lg text-sm border transition ${
-                      config.availableLanguages.includes(lang.value)
-                        ? 'bg-brand-primary text-white border-brand-primary'
-                        : 'bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10'
-                    }`}
-                  >
-                    {lang.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <RadioGroup
-              label="Default Language"
-              value={config.defaultLanguage}
-              onChange={(v) => onChange('defaultLanguage', v)}
-              options={config.availableLanguages.map((l) => ({ label: l.toUpperCase(), value: l }))}
-            />
-          </>
-        )}
       </CollapsibleSection>
 
       {/* Custom Cursor */}
@@ -167,7 +109,7 @@ export default function AdvancedTab({ config, onChange }: AdvancedTabProps) {
         />
         {config.enableColorTransitions && (
           <>
-            <Slider label="Transition Speed" value={config.colorTransitions.transitionSpeed} onChange={(v) => updateColorTransitions('transitionSpeed', v)} min={1} max={10} unit="s" />
+            <Slider label="Transition Speed" value={config.colorTransitions.transitionSpeed} onChange={(v) => updateColorTransitions('transitionSpeed', v)} min={1} max={20} unit="s" />
             <Toggle label="Header Transition" checked={config.colorTransitions.headerTransition} onChange={(v) => updateColorTransitions('headerTransition', v)} />
             {config.colorTransitions.headerTransition && (
               <div className="grid grid-cols-2 gap-4">
@@ -240,6 +182,7 @@ export default function AdvancedTab({ config, onChange }: AdvancedTabProps) {
               options={FALL_SPEED_OPTIONS}
             />
             <Slider label="Particle Size" value={config.fallingEffect.particleSize} onChange={(v) => updateFallingEffect('particleSize', v)} min={8} max={40} unit="px" />
+            <Slider label="Particle Opacity" value={config.fallingEffect.particleOpacity} onChange={(v) => updateFallingEffect('particleOpacity', v)} min={0.1} max={1} step={0.05} />
             <Toggle label="Show on Desktop" checked={config.fallingEffect.showOnDesktop} onChange={(v) => updateFallingEffect('showOnDesktop', v)} />
             <Toggle label="Show on Mobile" checked={config.fallingEffect.showOnMobile} onChange={(v) => updateFallingEffect('showOnMobile', v)} />
           </>
