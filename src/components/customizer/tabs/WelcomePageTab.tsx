@@ -73,6 +73,12 @@ export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps
               onChange={(e) => onChange('welcomeButtonText', e.target.value)}
               helperText="Text displayed on the welcome screen button."
             />
+            <ColorPicker
+              label="Button Color"
+              value={config.welcomeButtonColor}
+              onChange={(v) => onChange('welcomeButtonColor', v)}
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Leave empty to use the theme gradient.</p>
             <RadioGroup
               label="Button Animation"
               value={config.welcomeButtonAnimation}
@@ -104,6 +110,20 @@ export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps
         />
         {config.enableLanguageButtons && (
           <div className="space-y-3">
+            <ColorPicker
+              label="Buttons Color"
+              value={config.languageButtonColor}
+              onChange={(v) => onChange('languageButtonColor', v)}
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500">Leave empty to use the theme gradient.</p>
+            <Slider
+              label="Button Font Size"
+              value={config.languageButtonSize ?? 13}
+              onChange={(v) => onChange('languageButtonSize', v)}
+              min={10}
+              max={22}
+              unit="px"
+            />
             {config.languageButtons.map((btn, index) => (
               <div key={index} className="flex gap-2 items-start p-3 rounded-lg bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
                 <div className="flex-1 space-y-2">
@@ -112,6 +132,12 @@ export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps
                     placeholder="English"
                     value={btn.label}
                     onChange={(e) => updateLanguageButton(index, 'label', e.target.value)}
+                  />
+                  <Input
+                    label="Flag Image URL"
+                    placeholder="https://example.com/flag.png"
+                    value={btn.flagUrl ?? ''}
+                    onChange={(e) => updateLanguageButton(index, 'flagUrl', e.target.value)}
                   />
                   <Input
                     label="Message Sent"

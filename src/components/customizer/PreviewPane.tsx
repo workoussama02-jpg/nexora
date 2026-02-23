@@ -131,9 +131,9 @@ function buildPreviewHtml(config: PreviewConfig): string {
     ? `<div class="msg-row"><${botAvatarHtml ? 'span' : 'span'}>${botAvatarHtml}<div class="typing-indicator" style="background:${escapeHtml(bot.backgroundColor)};"><span style="background:${escapeHtml(bot.typingIndicatorColor)};"></span><span style="background:${escapeHtml(bot.typingIndicatorColor)};"></span><span style="background:${escapeHtml(bot.typingIndicatorColor)};"></span></div></div>`
     : '';
 
-  // Social icons row
+  // Social icons row — rendered inline inside the header
   const socialIconsHtml = win.showSocialIcons && win.socialLinks.length > 0
-    ? `<div class="social-icons" style="display:flex;gap:8px;padding:4px 16px;">${win.socialLinks.map((l) => `<a href="#" title="${escapeHtml(l.platform)}" style="color:${escapeHtml(win.socialIconColor)};"><svg width="${win.socialIconSize}" height="${win.socialIconSize}" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg></a>`).join('')}</div>`
+    ? `<div class="social-icons">${win.socialLinks.map((l) => l.iconUrl ? `<a href="${escapeHtml(l.url)}" title="Social Link" style="color:${escapeHtml(win.socialIconColor)};display:inline-flex;align-items:center;" target="_blank" rel="noopener noreferrer"><img src="${escapeHtml(l.iconUrl)}" width="${win.socialIconSize}" height="${win.socialIconSize}" style="width:${win.socialIconSize}px;height:${win.socialIconSize}px;object-fit:contain;border-radius:2px;" onerror="this.parentElement.style.display='none'" /></a>` : '').join('')}</div>`
     : '';
 
   // Shadow/glow
@@ -161,7 +161,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
 
   // Emoji button
   const emojiBtnHtml = inp.showEmojiPicker
-    ? `<button class="emoji-btn" title="Emoji" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px;">😊</button>`
+    ? `<button class="emoji-btn" id="emojiToggleBtn" title="Emoji" style="background:none;border:none;font-size:18px;cursor:pointer;padding:4px;position:relative;flex-shrink:0;" onclick="toggleEmojiPicker(event)">😊</button>`
     : '';
 
   // Welcome logo
@@ -304,10 +304,15 @@ function buildPreviewHtml(config: PreviewConfig): string {
   })();` : '';
 
   // Language buttons HTML
+  const langBtnSize = wp.languageButtonSize ?? 13;
   const langButtonsHtml = wp.enableLanguageButtons && wp.languageButtons && wp.languageButtons.length > 0
-    ? wp.languageButtons.map((btn) =>
-        `<button class="start-btn lang-btn" onclick="startChat('${escapeHtml(btn.message).replace(/'/g, '&#039;')}')">\n        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>\n        ${escapeHtml(btn.label)}\n      </button>`
-      ).join('\n      ')
+    ? `<div class="lang-btns-row">${wp.languageButtons.map((btn) => {
+        const btnBg = wp.languageButtonColor
+          ? `background:${escapeHtml(wp.languageButtonColor)};`
+          : 'background:linear-gradient(135deg,var(--primary),var(--secondary));';
+        const flagHtml = btn.flagUrl ? `<img src="${escapeHtml(btn.flagUrl)}" alt="" style="width:${langBtnSize + 2}px;height:${langBtnSize + 2}px;object-fit:contain;" onerror="this.style.display='none'" /> ` : '';
+        return `<button class="lang-welcome-btn" onclick="startChat('${escapeHtml(btn.message).replace(/'/g, '&#039;')}')" style="${btnBg}font-size:${langBtnSize}px;">${flagHtml}${escapeHtml(btn.label)}</button>`;
+      }).join('\n      ')}</div>`
     : '';
 
   return `<!DOCTYPE html>
@@ -475,6 +480,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     40% { opacity: 1; transform: scale(1); }
   }
 
+  .social-icons { display: inline-flex; gap: 6px; align-items: center; }
   .social-icons a { display: inline-flex; opacity: 0.7; }
   .social-icons a:hover { opacity: 1; }
 
@@ -487,6 +493,15 @@ function buildPreviewHtml(config: PreviewConfig): string {
     font-size: 14px; outline: none; background: ${escapeHtml(inp.backgroundColor)}; color: ${escapeHtml(inp.textColor)};
   }
   .input-area input::placeholder { color: ${escapeHtml(inp.textColor)}; opacity: 0.5; }
+  .lang-btns-row {
+    display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 8px;
+  }
+  .lang-welcome-btn {
+    display: inline-flex; align-items: center; gap: 5px; padding: 8px 16px; border: none;
+    border-radius: 8px; color: #fff; font-size: 13px; font-weight: 500;
+    cursor: pointer; transition: opacity 0.2s;
+  }
+  .lang-welcome-btn:hover { opacity: 0.9; }
   .emoji-btn { flex-shrink: 0; }
   .send-btn {
     width: 36px; height: 36px; border: none; border-radius: ${inp.sendButtonBorderRadius}px;
@@ -521,19 +536,19 @@ function buildPreviewHtml(config: PreviewConfig): string {
       ${titleAvatarHtml}
       ${titleAvatarPlaceholder}
       <span class="name">${displayTitle ? escapeHtml(displayTitle) : '<span class="placeholder">Company Name</span>'}</span>
+      ${socialIconsHtml}
       <div class="header-actions">
         ${backBtnHtml}
         ${refreshBtnHtml}
         <button class="close-btn" onclick="toggleChat()">&times;</button>
       </div>
     </div>
-    ${socialIconsHtml}
 
     <div class="welcome-screen">
       ${wp.welcomeLogoPosition === 'below-text' ? '' : welcomeLogoHtml}
       <div class="welcome-text">${config.welcomeText ? escapeHtml(win.welcomeMessage || config.welcomeText) : '<span class="placeholder">Welcome! How can we help?</span>'}</div>
       ${wp.welcomeLogoPosition === 'below-text' ? welcomeLogoHtml : ''}
-      ${wp.showWelcomeButton !== false ? `<button class="start-btn" onclick="startChat()">
+      ${wp.showWelcomeButton !== false ? `<button class="start-btn" onclick="startChat()" style="${wp.welcomeButtonColor ? `background:${escapeHtml(wp.welcomeButtonColor)};` : ''}">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         ${escapeHtml(wp.welcomeButtonText || 'Send us a message')}
       </button>` : ''}
@@ -567,8 +582,9 @@ function buildPreviewHtml(config: PreviewConfig): string {
       ${typingHtml}
     </div>
 
-    <div class="input-area">
+    <div class="input-area" style="position:relative;">
       ${emojiBtnHtml}
+      ${inp.showEmojiPicker ? `<div id="emojiPicker" style="display:none;position:absolute;bottom:52px;left:4px;width:220px;max-height:160px;overflow-y:auto;background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:6px;grid-template-columns:repeat(7,1fr);gap:2px;z-index:20;"></div>` : ''}
       <input type="text" placeholder="${escapeHtml(inp.placeholder)}" readonly />
       <button class="send-btn">
         ${sendIconSvg}
@@ -613,6 +629,39 @@ function buildPreviewHtml(config: PreviewConfig): string {
     c.classList.remove('mode-chat');
     chatMode = 'welcome';
   }
+  // Emoji picker
+  var emojiPickerOpen = false;
+  var EMOJIS = ['😀','😁','😂','🤣','😃','😄','😅','😆','😉','😊','😋','😎','😍','🥰','😘','🤗','🤔','😐','😑','😶','🙄','😏','😒','🤨','😬','🤪','😜','😝','😛','🤑','😴','🥱','😪','🤤','😷','🤒','🤕','🤧','🥵','🥶','🤯','😵','🥴','🤠','🎉','👍','👎','❤️','🔥','✨','⭐','🎊','🙏','💯','🎁','🌟','💪','🚀','💡','⚡','🌈','🎵','🎶','💎','🌺','🌸','🌻','🌙','😸','😺','🦊','🐶','🐱','🐭','🦁','🐯','🐨','🐼','🐸','🦋','🌿','🍀','🍎','🍕','☕','🎂'];
+  (function() {
+    var picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+    EMOJIS.forEach(function(em) {
+      var btn = document.createElement('button');
+      btn.textContent = em;
+      btn.style.cssText = 'background:none;border:none;font-size:18px;cursor:pointer;padding:2px;width:28px;height:28px;border-radius:4px;';
+      btn.onmouseover = function() { btn.style.background = 'rgba(0,0,0,0.06)'; };
+      btn.onmouseout = function() { btn.style.background = 'none'; };
+      btn.onclick = function(e) { e.stopPropagation(); };
+      picker.appendChild(btn);
+    });
+  })();
+  function toggleEmojiPicker(e) {
+    e.stopPropagation();
+    var picker = document.getElementById('emojiPicker');
+    if (!picker) return;
+    emojiPickerOpen = !emojiPickerOpen;
+    picker.style.display = emojiPickerOpen ? 'grid' : 'none';
+  }
+  document.addEventListener('click', function(e) {
+    var picker = document.getElementById('emojiPicker');
+    if (picker && emojiPickerOpen) {
+      var btn = document.getElementById('emojiToggleBtn');
+      if (btn && !btn.contains(e.target) && !picker.contains(e.target)) {
+        emojiPickerOpen = false;
+        picker.style.display = 'none';
+      }
+    }
+  });
   ${fallingEffectScript}
 </script>
 </body>

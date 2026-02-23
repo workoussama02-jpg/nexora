@@ -7,6 +7,7 @@ import CollapsibleSection from '../CollapsibleSection';
 import Toggle from '@/components/ui/Toggle';
 import RadioGroup from '@/components/ui/RadioGroup';
 import Input from '@/components/ui/Input';
+import EmojiPickerInput from '@/components/ui/EmojiPickerInput';
 import Slider from '@/components/ui/Slider';
 import NumberInput from '@/components/ui/NumberInput';
 import ColorPicker from '../ColorPicker';
@@ -167,11 +168,11 @@ export default function AdvancedTab({ config, onChange }: AdvancedTabProps) {
               />
             )}
             {config.fallingEffect.effectSource === 'emoji' && (
-              <Input
+              <EmojiPickerInput
                 label="Emoji"
                 value={config.fallingEffect.emoji}
-                onChange={(e) => updateFallingEffect('emoji', e.target.value)}
-                helperText="Single emoji character for the falling effect."
+                onChange={(v) => updateFallingEffect('emoji', v)}
+                helperText="Pick or type an emoji for the falling effect."
               />
             )}
             <NumberInput label="Particle Count" value={config.fallingEffect.particleCount} onChange={(v) => updateFallingEffect('particleCount', v)} min={5} max={50} />

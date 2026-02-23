@@ -43,7 +43,7 @@ interface FormState {
   position: 'left' | 'right';
 }
 
-const TABS = ['Widget Settings', 'Bubble', 'Tooltip', 'Window', 'Welcome Page', 'Footer', 'Advanced'] as const;
+const TABS = ['Settings', 'Bubble', 'Tooltip', 'Window', 'Welcome Page', 'Footer', 'Advanced'] as const;
 type TabName = typeof TABS[number];
 
 /** Deep merge saved partial config with full defaults */
@@ -106,7 +106,7 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
 
   const [form, setForm] = useState<FormState>(widget ? widgetToForm(widget) : INITIAL_FORM);
   const [config, setConfig] = useState<WidgetAdvancedConfig>(() => mergeConfig(widget?.config));
-  const [activeTab, setActiveTab] = useState<TabName>('Widget Settings');
+  const [activeTab, setActiveTab] = useState<TabName>('Settings');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -387,7 +387,7 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
 
           {/* Tab content */}
           <div className="min-h-[200px]">
-            {activeTab === 'Widget Settings' && (
+            {activeTab === 'Settings' && (
               <WidgetSettingsTab
                 name={form.name}
                 webhookUrl={form.webhookUrl}

@@ -41,8 +41,6 @@ const SEND_BUTTON_ICON_OPTIONS = [
   { label: 'Send', value: 'send' },
 ];
 
-const SOCIAL_PLATFORMS = ['Website', 'Facebook', 'Twitter/X', 'Instagram', 'LinkedIn', 'YouTube', 'TikTok', 'WhatsApp', 'Telegram', 'GitHub'];
-
 export default function WindowTab({
   windowConfig, botMessage, userMessage, inputField,
   onWindowChange, onBotChange, onUserChange, onInputChange,
@@ -170,7 +168,7 @@ export default function WindowTab({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Social Links</span>
                 {windowConfig.socialLinks.length < 5 && (
-                  <button type="button" onClick={() => onWindowChange('socialLinks', [...windowConfig.socialLinks, { platform: 'Website', url: '' }])} className="flex items-center gap-1 text-xs text-brand-primary hover:underline">
+                  <button type="button" onClick={() => onWindowChange('socialLinks', [...windowConfig.socialLinks, { iconUrl: '', url: '' }])} className="flex items-center gap-1 text-xs text-brand-primary hover:underline">
                     <Plus className="h-3 w-3" /> Add Link
                   </button>
                 )}
@@ -180,36 +178,41 @@ export default function WindowTab({
               )}
               <div className="space-y-3">
                 {windowConfig.socialLinks.map((link: SocialLink, i: number) => (
-                  <div key={i} className="space-y-1 rounded-lg border border-gray-200 dark:border-white/10 p-3">
-                    <div className="flex items-center justify-between">
-                      <select
-                        value={link.platform}
-                        onChange={(e) => {
-                          const updated = [...windowConfig.socialLinks];
-                          updated[i] = { ...updated[i], platform: e.target.value };
-                          onWindowChange('socialLinks', updated);
-                        }}
-                        className="text-sm rounded border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-2 py-1 text-gray-900 dark:text-white outline-none"
-                      >
-                        {SOCIAL_PLATFORMS.map((p) => (
-                          <option key={p} value={p}>{p}</option>
-                        ))}
-                      </select>
-                      <button type="button" onClick={() => onWindowChange('socialLinks', windowConfig.socialLinks.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-400 transition p-1">
+                  <div key={i} className="space-y-2 rounded-lg border border-gray-200 dark:border-white/10 p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400 flex-1">Icon {i + 1}</span>
+                      <button type="button" onClick={() => onWindowChange('socialLinks', windowConfig.socialLinks.filter((_, idx) => idx !== i))} className="text-gray-400 hover:text-red-400 transition p-1 flex-shrink-0">
                         <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
-                    <input
-                      type="text"
-                      value={link.url}
-                      onChange={(e) => {
-                        const updated = [...windowConfig.socialLinks];
-                        updated[i] = { ...updated[i], url: e.target.value };
-                        onWindowChange('socialLinks', updated);
-                      }}
-                      placeholder="https://..."
-                      className="w-full rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary"
-                    />
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Icon URL</label>
+                      <input
+                        type="text"
+                        value={link.iconUrl ?? ''}
+                        onChange={(e) => {
+                          const updated = [...windowConfig.socialLinks];
+                          updated[i] = { ...updated[i], iconUrl: e.target.value };
+                          onWindowChange('socialLinks', updated);
+                        }}
+                        placeholder="https://example.com/icon.png"
+                        className="w-full rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-1.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Redirect Link</label>
+                      <input
+                        type="text"
+                        value={link.url ?? ''}
+                        onChange={(e) => {
+                          const updated = [...windowConfig.socialLinks];
+                          updated[i] = { ...updated[i], url: e.target.value };
+                          onWindowChange('socialLinks', updated);
+                        }}
+                        placeholder="https://..."
+                        className="w-full rounded-lg border border-gray-200 dark:border-white/20 bg-gray-50 dark:bg-white/5 px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 outline-none transition focus:border-brand-primary"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

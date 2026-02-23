@@ -48,7 +48,7 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
 
   // Build social links array string
   const socialLinksStr = cfg.window.socialLinks
-    .map((l) => `{ platform: '${escapeForJs(l.platform)}', url: '${escapeForJs(l.url)}' }`)
+    .map((l) => `{ iconUrl: '${escapeForJs(l.iconUrl)}', url: '${escapeForJs(l.url)}' }`)
     .join(', ');
 
   // Build available languages array string
@@ -58,7 +58,7 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
 
   // Build language buttons array string
   const languageButtonsStr = (cfg.welcomePage.languageButtons ?? [])
-    .map((b) => `{ label: '${escapeForJs(b.label)}', message: '${escapeForJs(b.message)}' }`)
+    .map((b) => `{ label: '${escapeForJs(b.label)}', message: '${escapeForJs(b.message)}', flagUrl: '${escapeForJs(b.flagUrl ?? '')}' }`)
     .join(', ');
 
   // Build the HTML embed snippet with full ChatWidgetConfig
@@ -230,7 +230,10 @@ export async function generateWidgetZip(payload: GenerateWidgetPayload): Promise
         welcomePage: {
             welcomeButtonText: '${escapeForJs(cfg.welcomePage.welcomeButtonText)}',
             showWelcomeButton: ${cfg.welcomePage.showWelcomeButton ?? true},
+            welcomeButtonColor: '${escapeForJs(cfg.welcomePage.welcomeButtonColor ?? '')}',
             enableLanguageButtons: ${cfg.welcomePage.enableLanguageButtons ?? false},
+            languageButtonColor: '${escapeForJs(cfg.welcomePage.languageButtonColor ?? '')}',
+            languageButtonSize: ${cfg.welcomePage.languageButtonSize ?? 13},
             languageButtons: [${languageButtonsStr}],
             showWelcomeLogo: ${cfg.welcomePage.showWelcomeLogo},
             welcomeLogoSource: '${escapeForJs(cfg.welcomePage.welcomeLogoSource)}',

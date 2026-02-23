@@ -37,7 +37,7 @@ export type TimestampFormat = '12-hour' | '24-hour' | 'relative' | 'full';
 export type SendButtonIcon = 'arrow-up' | 'paper-plane' | 'send';
 
 export interface SocialLink {
-  platform: string;
+  iconUrl: string;
   url: string;
 }
 
@@ -134,12 +134,16 @@ export type WelcomeAnimation = 'none' | 'bounce' | 'float' | 'pulse' | 'spin' | 
 export interface LanguageButton {
   label: string;
   message: string;
+  flagUrl?: string;
 }
 
 export interface WelcomePageConfig {
   welcomeButtonText: string;
   showWelcomeButton: boolean;
+  welcomeButtonColor: string;
   enableLanguageButtons: boolean;
+  languageButtonColor: string;
+  languageButtonSize: number;
   languageButtons: LanguageButton[];
   showWelcomeLogo: boolean;
   welcomeLogoSource: 'brand' | 'custom';

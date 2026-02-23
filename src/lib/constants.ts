@@ -161,7 +161,10 @@ export const DEFAULT_ADVANCED_CONFIG: WidgetAdvancedConfig = {
   welcomePage: {
     welcomeButtonText: 'Send us a message',
     showWelcomeButton: true,
+    welcomeButtonColor: '',
     enableLanguageButtons: false,
+    languageButtonColor: '',
+    languageButtonSize: 13,
     languageButtons: [],
     showWelcomeLogo: true,
     welcomeLogoSource: 'brand',

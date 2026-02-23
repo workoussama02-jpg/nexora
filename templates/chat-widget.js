@@ -149,7 +149,9 @@
         welcomePage: {
             welcomeButtonText: 'Send us a message',
             showWelcomeButton: true,
+            welcomeButtonColor: '',
             enableLanguageButtons: false,
+            languageButtonColor: '',
             languageButtons: [],
             showWelcomeLogo: true,
             welcomeLogoSource: 'brand',
@@ -338,15 +340,17 @@
 .ncw-lang-btn{font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;border:1px solid rgba(0,0,0,.15);background:none;cursor:pointer;color:' + config.style.fontColor + ';opacity:.6;margin-right:4px}\
 .ncw-lang-btn.ncw-lang-active{opacity:1;background:var(--chat-primary);color:#fff;border-color:var(--chat-primary)}\
 ' + (config.window.showTitle ? '' : '.ncw-header{display:none}') + '\
-.ncw-social-row{display:flex;gap:6px;padding:4px 16px 8px;border-bottom:1px solid rgba(0,0,0,.06)}\
-.ncw-social-icon{display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.7;transition:opacity .2s}\
-.ncw-social-icon:hover{opacity:1}\
-.ncw-social-icon svg{width:' + config.window.socialIconSize + 'px;height:' + config.window.socialIconSize + 'px;color:' + config.window.socialIconColor + '}\
 .ncw-welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;background:' + (config.welcomePage.welcomeBackgroundColor || config.window.backgroundColor) + '}\
 .ncw-welcome-logo{object-fit:contain;margin-bottom:12px}\
 .ncw-welcome-text{font-size:22px;font-weight:600;color:' + config.style.fontColor + ';margin-bottom:20px;line-height:1.3}\
-.ncw-start-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border:none;border-radius:8px;background:linear-gradient(135deg,var(--chat-primary),var(--chat-secondary));color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:opacity .2s;width:100%}\
+.ncw-start-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border:none;border-radius:8px;background:' + (config.welcomePage.welcomeButtonColor || 'linear-gradient(135deg,var(--chat-primary),var(--chat-secondary))') + ';color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:opacity .2s;width:100%}\
 .ncw-start-btn:hover{opacity:.9}\
+.ncw-lang-welcome-btn{width:auto!important;min-width:0!important;padding:10px 18px!important;font-size:14px!important;margin:0!important}\
+.ncw-lang-welcome-btn-row{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px;margin-bottom:8px}\
+.ncw-header-social{display:inline-flex;gap:6px;align-items:center;margin-left:6px}\
+.ncw-header-social a{display:inline-flex;align-items:center;justify-content:center;opacity:.7;transition:opacity .2s;color:' + config.window.socialIconColor + '}\
+.ncw-header-social a:hover{opacity:1}\
+.ncw-header-social svg{width:' + config.window.socialIconSize + 'px;height:' + config.window.socialIconSize + 'px}\
 .ncw-response-time{font-size:13px;color:' + config.style.fontColor + ';opacity:.5;margin-top:8px}\
 .ncw-prompts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px}\
 .ncw-prompt-chip{padding:6px 14px;border-radius:16px;border:1px solid rgba(0,0,0,.12);background:transparent;color:' + config.style.fontColor + ';font-size:' + config.window.starterPromptFontSize + 'px;cursor:pointer;font-family:inherit;transition:background .2s}\
@@ -476,6 +480,18 @@
     }
     headerHtml += '<span class="ncw-header-title">' + escHtml(config.window.title || config.branding.name) + '</span>';
 
+    // Social icons inline in header
+    if (config.window.showSocialIcons && config.window.socialLinks && config.window.socialLinks.length > 0) {
+        headerHtml += '<div class="ncw-header-social">';
+        for (var si = 0; si < config.window.socialLinks.length && si < 5; si++) {
+            var sl = config.window.socialLinks[si];
+            if (sl.iconUrl) {
+                headerHtml += '<a href="' + escAttr(sl.url) + '" target="_blank" rel="noopener noreferrer"><img src="' + escAttr(sl.iconUrl) + '" style="width:' + config.window.socialIconSize + 'px;height:' + config.window.socialIconSize + 'px;object-fit:contain;border-radius:2px;" onerror="this.style.display=\'none\'" /></a>';
+            }
+        }
+        headerHtml += '</div>';
+    }
+
     // Language selector buttons
     if (config.advanced.enableLanguageSelector && config.advanced.availableLanguages.length > 1) {
         headerHtml += '<div class="ncw-lang-btns" style="margin-left:auto;display:flex;gap:3px">';
@@ -497,18 +513,6 @@
     headerHtml += '<button class="ncw-header-btn ncw-close" aria-label="Close"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
     headerHtml += '</div></div>';
 
-    // Social icons row
-    var socialHtml = '';
-    if (config.window.showSocialIcons && config.window.socialLinks && config.window.socialLinks.length > 0) {
-        socialHtml = '<div class="ncw-social-row">';
-        for (var si = 0; si < config.window.socialLinks.length && si < 5; si++) {
-            var sl = config.window.socialLinks[si];
-            var iconSvg = socialIcons[sl.platform] || socialIcons.Website;
-            socialHtml += '<a class="ncw-social-icon" href="' + escAttr(sl.url) + '" target="_blank" rel="noopener noreferrer" title="' + escAttr(sl.platform) + '">' + iconSvg + '</a>';
-        }
-        socialHtml += '</div>';
-    }
-
     // --- Welcome screen ---
     var welcomeMsg = config.window.welcomeMessage || config.branding.welcomeText || 'Welcome!';
     var welcomeLogoHtml = '';
@@ -529,13 +533,19 @@
     welcomeHtml += '<div class="ncw-welcome-text">' + escHtml(welcomeMsg) + '</div>';
     if (wLP === 'below-text') welcomeHtml += welcomeLogoHtml;
     if (config.welcomePage.showWelcomeButton !== false) {
-        welcomeHtml += '<button class="ncw-start-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="ncw-start-btn-text">' + escHtml(config.welcomePage.welcomeButtonText || t('sendBtn')) + '</span></button>';
+        var wBtnStyle = config.welcomePage.welcomeButtonColor ? ' style="background:' + config.welcomePage.welcomeButtonColor + '"' : '';
+        welcomeHtml += '<button class="ncw-start-btn"' + wBtnStyle + '><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="ncw-start-btn-text">' + escHtml(config.welcomePage.welcomeButtonText || t('sendBtn')) + '</span></button>';
     }
     if (config.welcomePage.enableLanguageButtons && config.welcomePage.languageButtons && config.welcomePage.languageButtons.length > 0) {
+        welcomeHtml += '<div class="ncw-lang-welcome-btn-row">';
+        var lbSize = config.welcomePage.languageButtonSize || 13;
         for (var lbi = 0; lbi < config.welcomePage.languageButtons.length; lbi++) {
             var lb = config.welcomePage.languageButtons[lbi];
-            welcomeHtml += '<button class="ncw-start-btn ncw-lang-welcome-btn" data-lang-msg="' + escAttr(lb.message) + '"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>' + escHtml(lb.label) + '</button>';
+            var lbBg = config.welcomePage.languageButtonColor || 'linear-gradient(135deg,var(--chat-primary),var(--chat-secondary))';
+            var flagPart = lb.flagUrl ? '<img src="' + escAttr(lb.flagUrl) + '" style="width:' + (lbSize + 2) + 'px;height:' + (lbSize + 2) + 'px;object-fit:contain;" onerror="this.style.display=\'none\'" /> ' : '';
+            welcomeHtml += '<button class="ncw-start-btn ncw-lang-welcome-btn" data-lang-msg="' + escAttr(lb.message) + '" style="background:' + escAttr(lbBg) + ';font-size:' + lbSize + 'px;">' + flagPart + escHtml(lb.label) + '</button>';
         }
+        welcomeHtml += '</div>';
     }
     if (config.branding.responseTimeText) {
         welcomeHtml += '<div class="ncw-response-time">' + escHtml(config.branding.responseTimeText) + '</div>';
@@ -601,7 +611,7 @@
     footerHtml += '</div>';
 
     // Assemble container
-    container.innerHTML = headerHtml + socialHtml + welcomeHtml + chatHtml + footerHtml;
+    container.innerHTML = headerHtml + welcomeHtml + chatHtml + footerHtml;
 
     // Apply RTL for Arabic
     if (currentLang === 'ar') container.setAttribute('dir', 'rtl');
