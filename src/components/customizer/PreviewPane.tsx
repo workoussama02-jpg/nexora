@@ -70,7 +70,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
   // Starter prompts
   const promptsHtml = win.starterPrompts
     .filter((p) => p.trim())
-    .map((p) => `<button class="starter-prompt" style="font-size:${win.starterPromptFontSize}px;">${escapeHtml(p)}</button>`)
+    .map((p) => `<button class="starter-prompt" onclick="sendMessage('${p.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n')}')" style="font-size:${win.starterPromptFontSize}px;">${escapeHtml(p)}</button>`)
     .join('');
 
   // Custom bubble icon
@@ -466,6 +466,10 @@ function buildPreviewHtml(config: PreviewConfig): string {
   .msg-bubble.user { background: ${escapeHtml(usr.backgroundColor)}; color: ${escapeHtml(usr.textColor)}; }
   .msg-timestamp { font-size: 10px; opacity: 0.6; margin-top: 2px; padding: 0 4px; }
   .msg-row.user .msg-timestamp { text-align: right; }
+  .msg-bubble-wrap { display: inline-flex; flex-direction: row; align-items: flex-end; gap: 4px; }
+  .copy-btn { background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 12px; opacity: 0; transition: opacity 0.15s; color: var(--font); flex-shrink: 0; }
+  .msg-bubble-wrap:hover .copy-btn { opacity: 0.5; }
+  .copy-btn:hover { opacity: 1 !important; background: rgba(0,0,0,0.07); }
 
   .typing-indicator {
     display: inline-flex; gap: 4px; padding: 10px 14px; border-radius: ${win.messageBorderRadius}px;
@@ -561,7 +565,10 @@ function buildPreviewHtml(config: PreviewConfig): string {
       <div class="msg-row">
         ${botAvatarHtml}
         <div>
-          <div class="msg-bubble bot">Hello! How can I help you today?</div>
+          <div class="msg-bubble-wrap">
+            <div class="msg-bubble bot">Hello! How can I help you today?</div>
+            ${bot.showCopyIcon ? '<button class="copy-btn" onclick="copyMsg(this)" title="Copy">📋</button>' : ''}
+          </div>
           ${timestampHtml}
         </div>
       </div>
@@ -575,7 +582,10 @@ function buildPreviewHtml(config: PreviewConfig): string {
       <div class="msg-row">
         ${botAvatarHtml}
         <div>
-          <div class="msg-bubble bot">Sure! I'd be happy to help. What would you like to know?</div>
+          <div class="msg-bubble-wrap">
+            <div class="msg-bubble bot">Sure! I'd be happy to help. What would you like to know?</div>
+            ${bot.showCopyIcon ? '<button class="copy-btn" onclick="copyMsg(this)" title="Copy">📋</button>' : ''}
+          </div>
           ${timestampHtml}
         </div>
       </div>
@@ -585,8 +595,8 @@ function buildPreviewHtml(config: PreviewConfig): string {
     <div class="input-area" style="position:relative;">
       ${emojiBtnHtml}
       ${inp.showEmojiPicker ? `<div id="emojiPicker" style="display:none;position:absolute;bottom:52px;left:4px;width:220px;max-height:160px;overflow-y:auto;background:#fff;border:1px solid rgba(0,0,0,0.12);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,0.15);padding:6px;grid-template-columns:repeat(7,1fr);gap:2px;z-index:20;"></div>` : ''}
-      <input type="text" placeholder="${escapeHtml(inp.placeholder)}" readonly />
-      <button class="send-btn">
+      <input type="text" id="chatInput" placeholder="${escapeHtml(inp.placeholder)}"${inp.maxCharacters ? ` maxlength="${inp.maxCharacters}"` : ''} />
+      <button class="send-btn" onclick="sendMessage()">
         ${sendIconSvg}
       </button>
     </div>
@@ -599,6 +609,15 @@ function buildPreviewHtml(config: PreviewConfig): string {
 <script>
   var chatOpen = false;
   var chatMode = 'welcome';
+  var SHOW_COPY_ICON = ${JSON.stringify(bot.showCopyIcon)};
+  var BOT_AVATAR_HTML = ${JSON.stringify(botAvatarHtml)};
+  var USER_AVATAR_HTML = ${JSON.stringify(userAvatarHtml)};
+  var BOT_BG = ${JSON.stringify(bot.backgroundColor)};
+  var TYPING_CLR = ${JSON.stringify(bot.typingIndicatorColor)};
+  var MSG_RADIUS = ${JSON.stringify(win.messageBorderRadius)};
+  function reportState() {
+    try { window.parent.postMessage({ type: 'ncw-stateChange', chatOpen: chatOpen, chatMode: chatMode }, '*'); } catch(e) {}
+  }
   function toggleChat() {
     var c = document.getElementById('chatContainer');
     chatOpen = !chatOpen;
@@ -609,6 +628,7 @@ function buildPreviewHtml(config: PreviewConfig): string {
     }
     var tt = document.querySelector('.tooltip');
     if (tt && chatOpen) tt.style.display = 'none';
+    reportState();
   }
   function startChat(initialMessage) {
     var c = document.getElementById('chatContainer');
@@ -618,16 +638,36 @@ function buildPreviewHtml(config: PreviewConfig): string {
     }
     c.classList.add('mode-chat');
     chatMode = 'chat';
+    reportState();
   }
   function backToWelcome() {
     var c = document.getElementById('chatContainer');
     c.classList.remove('mode-chat');
     chatMode = 'welcome';
+    reportState();
   }
   function refreshChat() {
     var c = document.getElementById('chatContainer');
     c.classList.remove('mode-chat');
     chatMode = 'welcome';
+    reportState();
+  }
+  function copyMsg(btn) {
+    var wrap = btn.parentElement;
+    if (!wrap) return;
+    var bubble = wrap.querySelector('.msg-bubble');
+    if (!bubble) return;
+    var text = bubble.textContent || '';
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;top:0;left:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch(e) {}
+    document.body.removeChild(ta);
+    var orig = btn.textContent;
+    btn.textContent = '\u2713';
+    setTimeout(function() { btn.textContent = orig; }, 1200);
   }
   // Emoji picker
   var emojiPickerOpen = false;
@@ -641,7 +681,19 @@ function buildPreviewHtml(config: PreviewConfig): string {
       btn.style.cssText = 'background:none;border:none;font-size:18px;cursor:pointer;padding:2px;width:28px;height:28px;border-radius:4px;';
       btn.onmouseover = function() { btn.style.background = 'rgba(0,0,0,0.06)'; };
       btn.onmouseout = function() { btn.style.background = 'none'; };
-      btn.onclick = function(e) { e.stopPropagation(); };
+      btn.onclick = function(e) {
+        e.stopPropagation();
+        var input = document.getElementById('chatInput');
+        if (input) {
+          var start = input.selectionStart;
+          var end = input.selectionEnd;
+          input.value = input.value.substring(0, start) + em + input.value.substring(end);
+          input.selectionStart = input.selectionEnd = start + em.length;
+          input.focus();
+        }
+        emojiPickerOpen = false;
+        picker.style.display = 'none';
+      };
       picker.appendChild(btn);
     });
   })();
@@ -663,6 +715,67 @@ function buildPreviewHtml(config: PreviewConfig): string {
     }
   });
   ${fallingEffectScript}
+
+  function escapeUserHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function sendMessage(text) {
+    var c = document.getElementById('chatContainer');
+    if (!c) return;
+    if (!c.classList.contains('mode-chat')) {
+      c.classList.add('mode-chat');
+      chatMode = 'chat';
+      if (!chatOpen) { chatOpen = true; c.classList.add('open'); }
+      reportState();
+    }
+    var input = document.getElementById('chatInput');
+    var msg = text !== undefined ? text : (input ? input.value.trim() : '');
+    if (!msg) return;
+    if (input && text === undefined) input.value = '';
+    var area = document.querySelector('.messages-area');
+    if (!area) return;
+    var uRow = document.createElement('div');
+    uRow.className = 'msg-row user';
+    uRow.innerHTML = USER_AVATAR_HTML + '<div><div class="msg-bubble user" style="border-radius:' + MSG_RADIUS + 'px">' + escapeUserHtml(msg) + '</div></div>';
+    area.appendChild(uRow);
+    var tRow = document.createElement('div');
+    tRow.className = 'msg-row';
+    tRow.id = 'demoTypingRow';
+    tRow.innerHTML = BOT_AVATAR_HTML + '<div class="typing-indicator" style="background:' + BOT_BG + '"><span style="background:' + TYPING_CLR + '"></span><span style="background:' + TYPING_CLR + '"></span><span style="background:' + TYPING_CLR + '"></span></div>';
+    area.appendChild(tRow);
+    area.scrollTop = area.scrollHeight;
+    setTimeout(function() {
+      var tr = document.getElementById('demoTypingRow');
+      if (tr) tr.remove();
+      var bRow = document.createElement('div');
+      bRow.className = 'msg-row';
+      bRow.innerHTML = BOT_AVATAR_HTML + '<div><div class="msg-bubble-wrap"><div class="msg-bubble bot" style="border-radius:' + MSG_RADIUS + 'px">Please connect me to your webhook first to activate the AI. This is a demo preview.</div>' + (SHOW_COPY_ICON ? '<button class="copy-btn" onclick="copyMsg(this)" title="Copy">\uD83D\uDCCB</button>' : '') + '</div></div>';
+      area.appendChild(bRow);
+      area.scrollTop = area.scrollHeight;
+    }, 1500);
+  }
+
+  (function() {
+    var inp = document.getElementById('chatInput');
+    if (inp) inp.addEventListener('keydown', function(e) { if (e.key === 'Enter') sendMessage(); });
+  })();
+  window.addEventListener('message', function(e) {
+    if (e.data && e.data.type === 'ncw-restoreState') {
+      var c = document.getElementById('chatContainer');
+      if (e.data.chatOpen) {
+        chatOpen = true;
+        c.classList.add('open');
+      }
+      if (e.data.chatMode === 'chat') {
+        chatMode = 'chat';
+        c.classList.add('mode-chat');
+      }
+      var tt = document.querySelector('.tooltip');
+      if (tt && chatOpen) tt.style.display = 'none';
+    }
+  });
+  window.parent.postMessage({ type: 'ncw-ready' }, '*');
 </script>
 </body>
 </html>`;
@@ -670,25 +783,59 @@ function buildPreviewHtml(config: PreviewConfig): string {
 
 export default function PreviewPane({ config }: PreviewPaneProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const savedStateRef = useRef<{ chatOpen: boolean; chatMode: string }>({ chatOpen: false, chatMode: 'welcome' });
+  const blobUrlRef = useRef<string | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Listen for state changes and ready signal from iframe
   useEffect(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    const html = buildPreviewHtml(config);
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    iframe.src = url;
-    return () => URL.revokeObjectURL(url);
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'ncw-stateChange') {
+        savedStateRef.current = { chatOpen: e.data.chatOpen, chatMode: e.data.chatMode };
+      }
+      if (e.data?.type === 'ncw-ready') {
+        const iframe = iframeRef.current;
+        const state = savedStateRef.current;
+        if (iframe?.contentWindow && (state.chatOpen || state.chatMode !== 'welcome')) {
+          iframe.contentWindow.postMessage({ type: 'ncw-restoreState', ...state }, '*');
+        }
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Debounced config reload with state preservation
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      const iframe = iframeRef.current;
+      if (!iframe) return;
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+      const html = buildPreviewHtml(config);
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      blobUrlRef.current = url;
+      iframe.src = url;
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [config]);
 
-  const side = config.position === 'left' ? 'left-0' : 'right-0';
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) URL.revokeObjectURL(blobUrlRef.current);
+    };
+  }, []);
 
   return (
     <iframe
       ref={iframeRef}
       title="Widget Preview"
-      className={`fixed bottom-0 ${side} border-0 z-50`}
-      style={{ width: '520px', height: '740px', background: 'transparent' }}
+      className="absolute inset-0 w-full h-full border-0"
+      style={{ background: 'transparent' }}
       sandbox="allow-scripts"
     />
   );

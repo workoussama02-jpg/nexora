@@ -66,7 +66,15 @@ function resolveConfig(raw: unknown): WidgetAdvancedConfig {
 export async function POST(request: NextRequest) {
   try {
     // Auth check
-    const { userId } = await auth();
+    let userId;
+    try {
+      const authResult = await auth();
+      userId = authResult.userId;
+    } catch (authErr) {
+      console.error('Auth error:', authErr);
+      return NextResponse.json({ error: 'Authentication failed', details: authErr instanceof Error ? authErr.message : String(authErr) }, { status: 401 });
+    }
+
     if (!userId) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -109,6 +117,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     console.error('Widget generation error:', err);
-    return NextResponse.json({ error: 'An unexpected error occurred' }, { status: 500 });
+    return NextResponse.json({ error: 'An unexpected error occurred', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
   }
 }

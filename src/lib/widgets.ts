@@ -73,3 +73,33 @@ export async function countWidgets(userId: string): Promise<{ count: number; err
   if (error) return { count: 0, error: error.message || 'Failed to count widgets' };
   return { count: data?.length ?? 0, error: null };
 }
+
+export async function cloneWidget(widgetId: string, userId: string): Promise<{ data: WidgetRow | null; error: string | null }> {
+  const { data: original, error: fetchError } = await getWidget(widgetId, userId);
+  if (fetchError || !original) {
+    return { data: null, error: fetchError ?? 'Widget not found' };
+  }
+
+  // Compute the new name
+  let newName = original.name;
+  const copyMatch = newName.match(/^(.*)\(Copy(?:\s(\d+))?\)$/);
+  if (copyMatch) {
+    const base = copyMatch[1].trimEnd();
+    const n = copyMatch[2] ? parseInt(copyMatch[2], 10) + 1 : 2;
+    newName = `${base} (Copy ${n})`;
+  } else {
+    newName = `${newName} (Copy)`;
+  }
+
+  const { id: _id, created_at: _ca, updated_at: _ua, ...rest } = original as WidgetRow & { updated_at?: string };
+  void _id; void _ca; void _ua;
+
+  const { data, error } = await insforge.database
+    .from('widgets')
+    .insert([{ ...rest, name: newName, user_id: userId }])
+    .select()
+    .single();
+
+  if (error) return { data: null, error: error.message || 'Failed to clone widget' };
+  return { data: data as WidgetRow, error: null };
+}

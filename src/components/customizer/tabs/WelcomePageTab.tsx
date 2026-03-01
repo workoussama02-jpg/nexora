@@ -12,6 +12,9 @@ import Input from '@/components/ui/Input';
 interface WelcomePageTabProps {
   config: WelcomePageConfig;
   onChange: <K extends keyof WelcomePageConfig>(key: K, value: WelcomePageConfig[K]) => void;
+  welcomeText: string;
+  welcomeTextError?: string;
+  onWelcomeTextChange: (value: string) => void;
 }
 
 const LOGO_SOURCE_OPTIONS = [
@@ -36,7 +39,7 @@ const ANIMATION_OPTIONS = [
   { label: 'Glow', value: 'glow' },
 ];
 
-export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps) {
+export default function WelcomePageTab({ config, onChange, welcomeText, welcomeTextError, onWelcomeTextChange }: WelcomePageTabProps) {
   function addLanguageButton() {
     const updated: LanguageButton[] = [...config.languageButtons, { label: 'English', message: 'Language: English' }];
     onChange('languageButtons', updated);
@@ -56,6 +59,20 @@ export default function WelcomePageTab({ config, onChange }: WelcomePageTabProps
 
   return (
     <div className="space-y-4">
+      {/* Content */}
+      <CollapsibleSection title="Content">
+        <Input
+          label="Welcome Text"
+          placeholder="e.g., Hi there! 👋 How can we help?"
+          value={welcomeText}
+          onChange={(e) => onWelcomeTextChange(e.target.value)}
+          error={welcomeTextError}
+          maxLength={200}
+          required
+          helperText="Main greeting shown to visitors before they start chatting."
+        />
+      </CollapsibleSection>
+
       {/* Welcome Button */}
       <CollapsibleSection title="Welcome Button">
         <Toggle

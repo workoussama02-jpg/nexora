@@ -4,11 +4,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Plus, Pencil, Download, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Download, Trash2, Search, Copy } from 'lucide-react';
 import { useUser } from '@insforge/nextjs';
-import { insforge } from '@/lib/insforge';
-import { listWidgets, deleteWidget, countWidgets } from '@/lib/widgets';
-import { MAX_FREE_WIDGETS } from '@/lib/constants';
+import { listWidgets, deleteWidget, cloneWidget } from '@/lib/widgets';
 import type { WidgetRow } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import Spinner from '@/components/ui/Spinner';
@@ -31,9 +29,11 @@ export default function DashboardPage() {
 
   const [widgets, setWidgets] = useState<WidgetRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<WidgetRow | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [cloningId, setCloningId] = useState<string | null>(null);
 
   const loadWidgets = useCallback(async () => {
     if (!user?.id) return;
@@ -53,29 +53,30 @@ export default function DashboardPage() {
 
   async function handleCreateClick() {
     if (!user?.id) return;
-    const { count } = await countWidgets(user.id);
-    if (count >= MAX_FREE_WIDGETS) {
-      showToast(
-        "You've reached the widget limit for the Free plan. Upgrade to Pro for unlimited widgets.",
-        'error'
-      );
-      return;
-    }
     router.push('/dashboard/new');
+  }
+
+  async function handleClone(widget: WidgetRow) {
+    if (!user?.id) return;
+    setCloningId(widget.id);
+    try {
+      const { data, error } = await cloneWidget(widget.id, user.id);
+      if (error || !data) {
+        showToast(error ?? 'Clone failed. Please try again.', 'error');
+        return;
+      }
+      setWidgets((prev) => [data, ...prev]);
+      showToast(`Widget cloned! "${data.name}" added to the top of the list.`, 'success');
+    } catch {
+      showToast('Clone failed. Please try again.', 'error');
+    } finally {
+      setCloningId(null);
+    }
   }
 
   async function handleDownload(widget: WidgetRow) {
     setDownloadingId(widget.id);
     try {
-      // Refresh session to ensure token is valid
-      const { data: sessionData } = await insforge.auth.getCurrentSession();
-      if (!sessionData?.session) {
-        showToast('Your session has expired. Please sign in again.', 'error');
-        router.push('/login');
-        setDownloadingId(null);
-        return;
-      }
-
       const res = await fetch('/api/generate-widget', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -137,6 +138,10 @@ export default function DashboardPage() {
 
   const firstName = user?.profile?.name?.split(' ')[0];
 
+  const filteredWidgets = widgets.filter((w) =>
+    w.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -161,33 +166,44 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {/* Stats banner */}
-      <div className="mb-6 rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
-        Total Widgets: <span className="font-semibold">{widgets.length} / {MAX_FREE_WIDGETS}</span>
-        {widgets.length >= MAX_FREE_WIDGETS && (
-          <span className="ml-2 text-brand-primary">
-            &mdash; <button className="hover:underline font-medium">Upgrade to Pro</button> for unlimited widgets
-          </span>
-        )}
+      {/* Search bar */}
+      <div className="mb-6 flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Search widgets..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 dark:border-white/20 bg-white dark:bg-white/5 pl-9 pr-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition"
+          />
+        </div>
       </div>
 
       {widgets.length === 0 ? (
         <EmptyState onCreateClick={handleCreateClick} />
+      ) : filteredWidgets.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-gray-200 dark:border-white/10 py-16 text-center">
+          <Search className="h-10 w-10 text-gray-300 dark:text-gray-600 mb-3" />
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No widgets found matching &ldquo;<span className="font-medium text-gray-700 dark:text-gray-300">{searchTerm}</span>&rdquo;.
+          </p>
+        </div>
       ) : (
         <>
           {/* Desktop table */}
           <div className="hidden md:block overflow-hidden rounded-xl border border-gray-200 dark:border-white/10">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5">
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Name</th>
-                  <th className="px-4 py-3 text-left font-medium text-gray-500 dark:text-gray-400">Created</th>
-                  <th className="px-4 py-3 text-right font-medium text-gray-500 dark:text-gray-400">Actions</th>
+                <tr className="border-b border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-gray-800">
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Created</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-white/10">
-                {widgets.map((widget) => (
-                  <tr key={widget.id} className="bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                {filteredWidgets.map((widget) => (
+                  <tr key={widget.id} className="bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
                     <td className="px-4 py-3">
                       <Link
                         href={`/dashboard/edit/${widget.id}`}
@@ -211,6 +227,14 @@ export default function DashboardPage() {
                         >
                           <Pencil className="h-4 w-4" />
                         </Link>
+                        <button
+                          onClick={() => handleClone(widget)}
+                          disabled={cloningId === widget.id}
+                          className="rounded-lg p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition disabled:opacity-50"
+                          title="Clone widget"
+                        >
+                          <Copy className={`h-4 w-4 ${cloningId === widget.id ? 'animate-pulse' : ''}`} />
+                        </button>
                         <button
                           onClick={() => handleDownload(widget)}
                           disabled={downloadingId === widget.id}
@@ -236,7 +260,7 @@ export default function DashboardPage() {
 
           {/* Mobile cards */}
           <div className="space-y-3 md:hidden">
-            {widgets.map((widget) => (
+            {filteredWidgets.map((widget) => (
               <div
                 key={widget.id}
                 className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 p-4"
@@ -262,6 +286,14 @@ export default function DashboardPage() {
                     >
                       <Pencil className="h-4 w-4" />
                     </Link>
+                    <button
+                      onClick={() => handleClone(widget)}
+                      disabled={cloningId === widget.id}
+                      className="rounded-lg p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 transition disabled:opacity-50"
+                      title="Clone widget"
+                    >
+                      <Copy className={`h-4 w-4 ${cloningId === widget.id ? 'animate-pulse' : ''}`} />
+                    </button>
                     <button
                       onClick={() => handleDownload(widget)}
                       disabled={downloadingId === widget.id}

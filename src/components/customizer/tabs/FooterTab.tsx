@@ -9,7 +9,6 @@ import Input from '@/components/ui/Input';
 import TextareaField from '@/components/ui/TextareaField';
 import Toggle from '@/components/ui/Toggle';
 import Slider from '@/components/ui/Slider';
-import { Lock } from 'lucide-react';
 
 interface FooterTabProps {
   config: FooterConfig;
@@ -44,66 +43,34 @@ export default function FooterTab({ config, onChange }: FooterTabProps) {
 
       {config.mode === 'content' ? (
         <>
-          <div className="relative">
-            <div className="pointer-events-none opacity-50">
-              <Input
-                label="Footer Text"
-                value={config.text}
-                onChange={() => {}}
-                disabled
-              />
-            </div>
-            <div className="absolute right-2 top-0 flex items-center gap-1 text-xs text-gray-500">
-              <Lock className="h-3 w-3" />
-              <span>Pro only</span>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="pointer-events-none opacity-50">
-              <Input
-                label="Company Name"
-                value={config.companyName}
-                onChange={() => {}}
-                disabled
-              />
-            </div>
-            <div className="absolute right-2 top-0 flex items-center gap-1 text-xs text-gray-500">
-              <Lock className="h-3 w-3" />
-              <span>Pro only</span>
-            </div>
-          </div>
-          <div className="relative">
-            <div className="pointer-events-none opacity-50">
-              <Input
-                label="Company Link"
-                value={config.companyLink}
-                onChange={() => {}}
-                disabled
-              />
-            </div>
-            <div className="absolute right-2 top-0 flex items-center gap-1 text-xs text-gray-500">
-              <Lock className="h-3 w-3" />
-              <span>Pro only</span>
-            </div>
-          </div>
+          <Input
+            label="Footer Text"
+            value={config.text}
+            onChange={(e) => onChange('text', e.target.value)}
+            placeholder="Powered by"
+          />
+          <Input
+            label="Company Name"
+            value={config.companyName}
+            onChange={(e) => onChange('companyName', e.target.value)}
+            placeholder="Your Company"
+          />
+          <Input
+            label="Company Link"
+            value={config.companyLink}
+            onChange={(e) => onChange('companyLink', e.target.value)}
+            placeholder="https://yourcompany.com"
+          />
         </>
       ) : (
-        <div className="relative">
-          <div className="pointer-events-none opacity-50">
-            <TextareaField
-              label="Custom HTML"
-              value={config.customHtml}
-              onChange={() => {}}
-              placeholder='<a href="https://..." target="_blank">Powered by Us</a>'
-              rows={4}
-              helperText="Paste custom HTML for the footer area."
-            />
-          </div>
-          <div className="absolute right-2 top-0 flex items-center gap-1 text-xs text-gray-500">
-            <Lock className="h-3 w-3" />
-            <span>Pro only</span>
-          </div>
-        </div>
+        <TextareaField
+          label="Custom HTML"
+          value={config.customHtml}
+          onChange={(v) => onChange('customHtml', v)}
+          placeholder='<a href="https://..." target="_blank">Powered by Us</a>'
+          rows={4}
+          helperText="Paste custom HTML for the footer area."
+        />
       )}
 
       <ColorPicker

@@ -70,11 +70,11 @@ export default function WindowTab({
           onChange={(v) => onWindowChange('borderRadiusStyle', v as WindowBorderRadius)}
           options={WINDOW_RADIUS_OPTIONS}
         />
-        <div className="grid grid-cols-2 gap-4">
-          <NumberInput label="Window Height" value={windowConfig.height} onChange={(v) => onWindowChange('height', v)} min={300} max={800} unit="px" />
-          <NumberInput label="Window Width" value={windowConfig.width} onChange={(v) => onWindowChange('width', v)} min={300} max={600} unit="px" />
-        </div>
         <ColorPicker label="Background Color" value={windowConfig.backgroundColor} onChange={(v) => onWindowChange('backgroundColor', v)} />
+        <div className="grid grid-cols-2 gap-4">
+          <Slider label="Window Height" value={windowConfig.height} onChange={(v) => onWindowChange('height', v)} min={300} max={800} step={10} unit="px" />
+          <Slider label="Window Width" value={windowConfig.width} onChange={(v) => onWindowChange('width', v)} min={300} max={600} step={10} unit="px" />
+        </div>
         <NumberInput label="Font Size" value={windowConfig.fontSize} onChange={(v) => onWindowChange('fontSize', v)} min={12} max={24} unit="px" />
         <Toggle label="Show Scrollbar" checked={windowConfig.showScrollbar} onChange={(v) => onWindowChange('showScrollbar', v)} />
       </CollapsibleSection>

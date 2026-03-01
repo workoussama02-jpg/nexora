@@ -3,7 +3,7 @@
 
 import { Suspense, useState, FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { insforge } from '@/lib/insforge';
 import { MessageSquare } from 'lucide-react';
 import Button from '@/components/ui/Button';
@@ -11,8 +11,6 @@ import Input from '@/components/ui/Input';
 
 function LoginForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const expired = searchParams.get('expired') === 'true';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
@@ -56,11 +54,6 @@ function LoginForm() {
           </Link>
           <h1 className="mt-6 text-2xl font-bold">Welcome back</h1>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Log in to manage your chat widgets.</p>
-          {expired && (
-            <p className="mt-3 rounded-lg bg-amber-50 dark:bg-amber-900/30 px-4 py-2 text-sm text-amber-700 dark:text-amber-300">
-              Your session has expired. Please sign in again.
-            </p>
-          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 p-8">

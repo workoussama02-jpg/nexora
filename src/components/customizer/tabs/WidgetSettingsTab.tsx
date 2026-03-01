@@ -79,15 +79,6 @@ export default function WidgetSettingsTab({
           required
         />
         <Input
-          label="Welcome Text"
-          placeholder="e.g., Hi there! 👋 How can we help?"
-          value={welcomeText}
-          onChange={(e) => onFieldChange('welcomeText', e.target.value)}
-          error={errors.welcomeText}
-          maxLength={200}
-          required
-        />
-        <Input
           label="Response Time Text"
           placeholder="e.g., We usually respond in a few minutes"
           value={responseTimeText}

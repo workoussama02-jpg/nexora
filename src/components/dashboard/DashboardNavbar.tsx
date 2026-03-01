@@ -4,10 +4,9 @@
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { MessageSquare, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { LogOut, Settings, ChevronDown, MessageSquare } from 'lucide-react';
 import { insforge } from '@/lib/insforge';
 import ThemeToggle from '@/components/ThemeToggle';
-import SessionTimer from './SessionTimer';
 
 interface DashboardNavbarProps {
   userEmail: string;
@@ -56,15 +55,14 @@ export default function DashboardNavbar({ userEmail, userName }: DashboardNavbar
   const initial = getInitial(userName, userEmail);
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-gray-200 dark:border-white/10 bg-white/80 dark:bg-[#0a0a0f]/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link href="/dashboard" className="flex items-center gap-2 text-lg font-bold">
-          <MessageSquare className="h-6 w-6 text-brand-primary" />
-          Nexora
+    <nav className="sticky top-0 z-40 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a2e]">
+      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5 text-brand-primary shrink-0" />
+          <span className="text-base font-bold whitespace-nowrap">Nexora</span>
         </Link>
 
         <div className="flex items-center gap-2">
-          <SessionTimer />
           <ThemeToggle />
 
           <div className="relative" ref={menuRef}>

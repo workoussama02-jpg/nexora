@@ -5,7 +5,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@insforge/nextjs';
-import { insforge } from '@/lib/insforge';
 import { createWidget, updateWidget } from '@/lib/widgets';
 import { DEFAULT_WIDGET_CONFIG, DEFAULT_ADVANCED_CONFIG } from '@/lib/constants';
 import { validateWidgetForm, validateAdvancedConfig } from '@/lib/validators';
@@ -21,6 +20,7 @@ import WindowTab from './tabs/WindowTab';
 import FooterTab from './tabs/FooterTab';
 import AdvancedTab from './tabs/AdvancedTab';
 import WelcomePageTab from './tabs/WelcomePageTab';
+import { Upload, Download, Eye, EyeOff, X } from 'lucide-react';
 
 interface CustomizerFormProps {
   widget?: WidgetRow | null;
@@ -111,8 +111,51 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
   const [saving, setSaving] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const isDirtyRef = useRef(false);
   const savedRef = useRef(!!widget);
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  /** Export current form + config as JSON */
+  function handleExportJson() {
+    const payload = { form, config };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nexora-widget-${(form.name || 'untitled').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showToast('Config exported as JSON.', 'success');
+  }
+
+  /** Import form + config from a JSON file */
+  function handleImportJson(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result as string);
+        if (!parsed.form || !parsed.config) {
+          showToast('Invalid config file — missing form or config.', 'error');
+          return;
+        }
+        setForm({ ...INITIAL_FORM, ...parsed.form });
+        setConfig(mergeConfig(parsed.config));
+        isDirtyRef.current = true;
+        showToast('Config imported! Review and save.', 'success');
+      } catch {
+        showToast('Failed to parse JSON file.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    // Reset so the same file can be re-imported
+    e.target.value = '';
+  }
 
   // Track dirty state for beforeunload
   useEffect(() => {
@@ -211,15 +254,6 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
     setErrors({});
 
     try {
-      // Refresh session to ensure token is valid
-      const { data: sessionData } = await insforge.auth.getCurrentSession();
-      if (!sessionData?.session) {
-        showToast('Your session has expired. Please sign in again.', 'error');
-        router.push('/login');
-        setSaving(false);
-        return null;
-      }
-
       if (widget) {
         const { error } = await updateWidget(widget.id, user.id, {
           name: form.name,
@@ -286,15 +320,6 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
   async function handleDownload() {
     setDownloading(true);
     try {
-      // Refresh session to ensure token is valid
-      const { data: sessionData } = await insforge.auth.getCurrentSession();
-      if (!sessionData?.session) {
-        showToast('Your session has expired. Please sign in again.', 'error');
-        router.push('/login');
-        setDownloading(false);
-        return;
-      }
-
       const widgetId = await handleSave();
       if (!widgetId) {
         setDownloading(false);
@@ -424,7 +449,13 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
               />
             )}
             {activeTab === 'Welcome Page' && (
-              <WelcomePageTab config={config.welcomePage} onChange={updateWelcomePage} />
+              <WelcomePageTab
+                config={config.welcomePage}
+                onChange={updateWelcomePage}
+                welcomeText={form.welcomeText}
+                welcomeTextError={errors.welcomeText}
+                onWelcomeTextChange={(v) => updateField('welcomeText', v)}
+              />
             )}
             {activeTab === 'Footer' && (
               <FooterTab config={config.footer} onChange={updateFooter} />
@@ -436,18 +467,64 @@ export default function CustomizerForm({ widget }: CustomizerFormProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pb-8 mt-8">
+        <div className="flex flex-wrap items-center gap-3 pb-8 mt-8">
           <Button variant="secondary" onClick={handleSave} loading={saving} disabled={downloading}>
             Save Widget
           </Button>
           <Button onClick={handleDownload} loading={downloading} disabled={saving}>
             Download Files
           </Button>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              type="button"
+              onClick={() => setShowPreview((v) => !v)}
+              title={showPreview ? 'Hide preview' : 'Show preview'}
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-white/5 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-white/10"
+            >
+              {showPreview ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+              {showPreview ? 'Hide' : 'Preview'}
+            </button>
+            <button
+              type="button"
+              onClick={handleExportJson}
+              title="Export config as JSON"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-white/5 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-white/10"
+            >
+              <Download className="h-3.5 w-3.5" />
+              Export
+            </button>
+            <button
+              type="button"
+              onClick={() => importInputRef.current?.click()}
+              title="Import config from JSON"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-white/5 px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-white/10"
+            >
+              <Upload className="h-3.5 w-3.5" />
+              Import
+            </button>
+            <input ref={importInputRef} type="file" accept=".json" className="hidden" onChange={handleImportJson} />
+          </div>
         </div>
       </div>
 
-      {/* Floating widget preview */}
-      <PreviewPane config={previewConfig} />
+      {/* Live Preview Side Panel */}
+      {showPreview && (
+        <div className="fixed top-16 right-0 z-40 h-[calc(100vh-4rem)] w-[420px] border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-[#0f0f1a] shadow-xl flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-[#1a1a2e] shrink-0">
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">Live Preview</span>
+            <button
+              onClick={() => setShowPreview(false)}
+              className="rounded-md p-1 text-gray-400 transition hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+          <div className="flex-1 relative overflow-hidden">
+            <PreviewPane config={previewConfig} />
+          </div>
+        </div>
+      )}
 
       <DeployInstructions open={showInstructions} onClose={() => setShowInstructions(false)} />
     </>

@@ -1,7 +1,7 @@
 // Shared constants and default values
 import type { WidgetAdvancedConfig } from './types';
 
-export const MAX_FREE_WIDGETS = 1;
+export const APP_NAME = 'Nexora';
 
 export const DEFAULT_WIDGET_CONFIG = {
   webhookRoute: 'general',
@@ -13,8 +13,6 @@ export const DEFAULT_WIDGET_CONFIG = {
   fontColor: '#333333',
   position: 'right' as const,
 };
-
-export const APP_NAME = 'Nexora';
 
 export const DEFAULT_ADVANCED_CONFIG: WidgetAdvancedConfig = {
   bubble: {

@@ -8,7 +8,8 @@ import type { GenerateWidgetPayload } from './types';
 /**
  * Escape a user-provided string for safe insertion into a JS string literal.
  */
-function escapeForJs(str: string): string {
+function escapeForJs(str: string | undefined | null): string {
+  if (str == null) return '';
   return str
     .replace(/\\/g, '\\\\')
     .replace(/'/g, "\\'")
