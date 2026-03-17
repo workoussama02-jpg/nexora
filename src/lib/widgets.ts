@@ -28,7 +28,7 @@ export async function getWidget(widgetId: string, userId: string): Promise<{ dat
 export async function createWidget(payload: CreateWidgetPayload): Promise<{ data: WidgetRow | null; error: string | null }> {
   const { data, error } = await insforge.database
     .from('widgets')
-    .insert(payload)
+    .insert([payload])
     .select()
     .single();
 
