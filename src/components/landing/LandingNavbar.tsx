@@ -3,8 +3,11 @@
 
 import Link from 'next/link';
 import { MessageSquare } from 'lucide-react';
+import { useUser } from '@insforge/nextjs';
 
 export default function LandingNavbar() {
+  const { user, isLoaded } = useUser();
+
   return (
     <header className="fixed top-4 left-1/2 z-50 w-full max-w-5xl -translate-x-1/2 px-4">
       <nav className="flex items-center justify-between rounded-2xl border border-gray-200 dark:border-white/10 bg-white/70 dark:bg-white/5 px-6 py-3 backdrop-blur-xl">
@@ -16,22 +19,42 @@ export default function LandingNavbar() {
           <a href="#pricing" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
             Pricing
           </a>
-          <Link href="/login" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-            Login
+          {isLoaded && user ? (
+            <Link
+              href="/dashboard"
+              className="rounded-lg bg-gradient-to-r from-brand-primary to-brand-secondary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Login
+              </Link>
+              <Link
+                href="/signup"
+                className="rounded-lg bg-gradient-to-r from-brand-primary to-brand-secondary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+              >
+                Get Started
+              </Link>
+            </>
+          )}
+        </div>
+        {isLoaded && user ? (
+          <Link
+            href="/dashboard"
+            className="rounded-lg bg-gradient-to-r from-brand-primary to-brand-secondary px-4 py-2 text-sm font-medium text-white md:hidden"
+          >
+            Dashboard
           </Link>
+        ) : (
           <Link
             href="/signup"
-            className="rounded-lg bg-gradient-to-r from-brand-primary to-brand-secondary px-4 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            className="rounded-lg bg-gradient-to-r from-brand-primary to-brand-secondary px-4 py-2 text-sm font-medium text-white md:hidden"
           >
             Get Started
           </Link>
-        </div>
-        <Link
-          href="/signup"
-          className="rounded-lg bg-gradient-to-r from-brand-primary to-brand-secondary px-4 py-2 text-sm font-medium text-white md:hidden"
-        >
-          Get Started
-        </Link>
+        )}
       </nav>
     </header>
   );
